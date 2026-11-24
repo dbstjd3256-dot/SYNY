@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The SYNY Soy Origin Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: dark top bar with grouped dropdown menus; one working page below. Single light theme (operations console). */
+  --ink:#17221d;
+  --muted:#5b6862;
+  --line:#d9dfd9;
+  --bg:#eef1ec;
+  --panel:#ffffff;
+  --accent:#1d5c45;
+  --accent-soft:#dcebe3;
+  --ok:#23824f; --ok-bg:#e1f2e8;
+  --warn:#b0700a; --warn-bg:#fbf0d9;
+  --bad:#c0352b; --bad-bg:#fbe3e0;
+  --info:#2d5f9a; --info-bg:#e2ebf7;
+  --gfw:#c0006d;
+  --font-body:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--font-body)}
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.25}
+h2{font-size:21px;font-weight:700}
+h3{font-size:15px;font-weight:600}
+a{color:var(--accent)}
+.mono{font-family:var(--font-mono);font-size:12.5px}
+.num{font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #7fc4a2;outline-offset:2px}
+
+/* ---- Top bar ---- */
+.top{position:sticky;top:0;z-index:50;background:var(--ink);color:#e7ede9}
+.topin{display:flex;align-items:center;gap:20px;padding:0 24px;height:58px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;white-space:nowrap}
+.logo .mk{width:30px;height:30px;border-radius:8px;background:#7fc4a2;display:grid;place-items:center;color:var(--ink);font-weight:800;font-size:13px}
+.logo b{font-size:17px;letter-spacing:.2px}
+.menu{display:flex;gap:2px;height:100%;align-items:stretch}
+.mi{position:relative;display:flex;align-items:center}
+.mi > a,.mi > button{display:flex;align-items:center;gap:6px;height:40px;padding:0 13px;border-radius:8px;border:0;background:transparent;color:#d3ddd7;text-decoration:none;font-weight:500;white-space:nowrap}
+.mi > button::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);opacity:.7}
+.mi:hover > a,.mi:hover > button,.mi.cur > a,.mi.cur > button{background:#2a3a33;color:#fff}
+.mi.cur > a,.mi.cur > button{box-shadow:inset 0 -2px 0 #7fc4a2}
+.dd{position:absolute;top:100%;left:0;padding-top:6px;display:none;min-width:290px}
+.ddin{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(16,30,24,.18);padding:6px}
+.mi:hover .dd,.mi:focus-within .dd,.mi.open .dd{display:block}
+.mi.shut .dd{display:none!important}
+.dd a{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;padding:9px 10px;border-radius:8px;text-decoration:none;color:var(--ink)}
+.dd a:hover,.dd a.on{background:var(--accent-soft)}
+.dd .ico{width:30px;height:30px;border-radius:7px;background:#eef1ec;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--accent)}
+.dd b{display:block;font-size:13.5px}
+.dd small{display:block;color:var(--muted);font-size:12px;line-height:1.35}
+.topr{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:12.5px;color:#a9b8b0;white-space:nowrap}
+.avatar{width:30px;height:30px;border-radius:50%;background:#2c4238;display:grid;place-items:center;color:#fff;font-weight:700;font-size:12px}
+.banner{background:var(--warn-bg);color:#6d4a06;font-size:12.5px;border-bottom:1px solid #edd9a8;padding:7px 24px;display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between}
+
+.main{max-width:1360px;margin:0 auto;padding:22px 24px 48px}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.head p{margin:4px 0 0;color:var(--muted);max-width:75ch}
+.crumb{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:4px}
+.view{display:none;flex-direction:column;gap:16px}
+.view.on{display:flex}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
+.card > h3{margin-bottom:10px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+.g2r{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}
+.g2e{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.pill.info{background:var(--info-bg);color:var(--info)}
+.pill.mut{background:#eceeeb;color:var(--muted)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:0}
+
+.kpi{display:flex;flex-direction:column;gap:6px;border-top:4px solid var(--accent)}
+.kpi .lab{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.kpi .val{font-size:28px;font-weight:700}
+.kpi .tgt{font-size:12.5px;color:var(--muted)}
+.kpi svg{width:100%;height:44px}
+.kpi .scor{font-size:11.5px;color:var(--muted)}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid #edf0ec;vertical-align:middle}
+tr.sel td{background:var(--accent-soft)}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover td{background:#f4f7f3}
+tr.sel:hover td{background:var(--accent-soft)!important}
+.tw{overflow-x:auto}
+td.r,th.r{text-align:right}
+td .sub{display:block;font-size:12px;color:var(--muted)}
+
+.pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pipe div{background:#f5f7f4;border:1px solid var(--line);border-radius:8px;padding:10px}
+.pipe b{display:block;font-size:22px}
+.pipe span{font-size:12px;color:var(--muted)}
+.bar{display:flex;height:14px;border-radius:4px;overflow:hidden;background:#eceeeb;margin:10px 0 6px}
+.bar i{display:block;height:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+.alerts{display:flex;flex-direction:column;gap:8px}
+.alert{display:grid;grid-template-columns:4px 1fr auto;gap:10px;align-items:start;padding:9px 10px 9px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.alert .s{align-self:stretch}
+.alert p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
+.alert a{font-size:12.5px;font-weight:600;white-space:nowrap}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font-size:13px;color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.search{flex:1;min-width:200px;max-width:320px}
+select,input[type=text],input[type=number],input[type=email],input[type=tel]{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%}
+input[type=range]{accent-color:var(--accent);width:100%}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.seg button{border:0;background:#fff;padding:7px 12px;font-size:13px;color:var(--ink)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:#fff}
+
+.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;font-weight:600;color:var(--ink);text-decoration:none;font-size:13.5px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.warn{border-color:var(--warn);color:var(--warn)}
+.btn.bad{border-color:var(--bad);color:var(--bad)}
+.btn.badf{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+
+/* supplier profile */
+.prof-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.prof-h h3{font-size:19px}
+.sect{padding:14px 0;border-bottom:1px solid #edf0ec}
+.sect:last-child{border-bottom:0;padding-bottom:0}
+.sect h4{margin:0 0 8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;margin:0}
+.dl div{min-width:0}
+.dl dt{font-size:12px;color:var(--muted)}
+.dl dd{margin:0;font-weight:500;overflow-wrap:anywhere}
+.landbar{display:flex;height:12px;border-radius:4px;overflow:hidden;margin:6px 0}
+.docs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.doc{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+
+/* map */
+.mapwrap{position:relative}
+.mapwrap svg{width:100%;height:auto;display:block}
+.pin{cursor:pointer}
+.pin:hover circle.c,.pin.on circle.c{stroke-width:3.5}
+.mapcard{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff}
+
+/* satellite */
+.sat-wrap{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#333}
+.sat-wrap canvas{display:block;width:100%;height:auto}
+.sat-tag{position:absolute;top:8px;padding:3px 8px;font-size:11.5px;font-weight:600;background:rgba(10,18,14,.72);color:#fff;border-radius:4px}
+.ctrls{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px;margin-top:12px}
+.ctrls label{display:flex;gap:6px;align-items:center}
+.ctrls select{width:auto}
+.ctrls input[type=range]{width:200px}
+
+.check{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:10px 0;border-bottom:1px solid #edf0ec}
+.check:last-child{border-bottom:0}
+.ic{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.ic.ok{background:var(--ok)} .ic.bad{background:var(--bad)} .ic.warn{background:var(--warn)} .ic.mut{background:#9aa59f}
+.check p{margin:2px 0 0;color:var(--muted);font-size:12.5px}
+
+.eq{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center}
+.side{background:#f5f7f4;border:1px solid var(--line);border-radius:8px;padding:12px}
+.side .row{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:13.5px}
+.side .row.tot{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:700}
+.eqs{font-size:26px;font-weight:700;color:var(--bad)}
+.gap{margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--bad-bg);color:#7d231c;font-size:13.5px}
+
+.flow3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.flow3 div{border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12.5px}
+.flow3 b{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:3px}
+.log{font-family:var(--font-mono);font-size:12px;color:var(--muted);max-height:220px;overflow:auto;background:#f5f7f4;border-radius:6px;padding:8px 10px;margin:0;white-space:pre-wrap}
+.note{font-size:12px;color:var(--muted)}
+.hint{color:var(--muted);font-size:12.5px;margin:0}
+.timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.timeline .t{border:1px solid var(--line);border-radius:8px;padding:8px;font-size:12px}
+.timeline .t b{display:block;font-size:13px;margin-bottom:2px}
+.timeline svg{width:100%;height:auto;display:block;margin:6px 0}
+
+/* portal */
+.portal-h{display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.yearbig{font-size:34px;font-weight:700;line-height:1}
+.mtiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+.mt{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.mt .l{font-size:12px;color:var(--muted);font-weight:600}
+.mt .v{font-size:24px;font-weight:700}
+.chg{font-weight:700;font-size:13px}
+.chg.up{color:var(--ok)} .chg.dn{color:var(--bad)} .chg.flat{color:var(--muted)}
+.yrlabels{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:2px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.form .full{grid-column:1/-1}
+.receipt{margin-top:12px;padding:10px 12px;border-radius:8px;font-size:13px}
+
+/* gfw */
+.gfwleg{height:10px;border-radius:3px;background:linear-gradient(90deg,#ffc2d4,#f2569c,#c0006d);width:180px;display:inline-block;vertical-align:middle}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.stat3 div{border:1px solid var(--line);border-radius:8px;padding:10px}
+.stat3 b{display:block;font-size:20px}
+.stat3 span{font-size:12px;color:var(--muted)}
+
+/* how */
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.step{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fff;display:flex;flex-direction:column;gap:8px;position:relative}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700}
+.step ul{margin:0;padding-left:18px;color:var(--muted);font-size:13px}
+.step .scor{font-size:11.5px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.4px}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(16,24,20,.45);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:40px 16px;overflow:auto}
+.modal.on{display:flex}
+.mbox{background:#fff;border-radius:14px;max-width:640px;width:100%;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.mbox h3{font-size:18px;margin-bottom:4px}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:13.5px;z-index:120;display:none}
+.toast.on{display:block}
+
+
+.scan{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;margin:8px 0 4px;position:relative}
+.scan .sp{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;font-size:12px;padding:0 4px;position:relative}
+.scan .sp::before{content:"";position:absolute;top:13px;left:-50%;width:100%;height:2px;background:var(--line);z-index:0}
+.scan .sp:first-child::before{display:none}
+.scan .sp.done::before{background:var(--accent)}
+.scan .sp.bad::before{background:var(--bad)}
+.scan .b{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px;background:#eceeeb;color:var(--muted);z-index:1;border:2px solid #fff}
+.scan .done .b{background:var(--accent);color:#fff}
+.scan .bad .b{background:var(--bad);color:#fff}
+.scan .sp b{font-size:12px}
+.scan .sp span{color:var(--muted);font-size:11.5px}
+.idchain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px}
+.idchain .k{border:1px solid var(--line);border-radius:6px;padding:4px 8px;background:#f8faf7}
+.idchain .k small{display:block;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px}
+.idchain .k.miss{border-color:var(--bad);background:var(--bad-bg)}
+.idchain .ar{color:var(--muted)}
+.bins{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.binc{border:1px solid var(--line);border-radius:10px;padding:12px;border-top:4px solid var(--line);display:flex;flex-direction:column;gap:8px;background:#fff}
+.binc.h{border-top-color:var(--warn)} .binc.a{border-top-color:var(--ok)} .binc.n{border-top-color:var(--bad)}
+.fill{height:10px;border-radius:4px;background:#eceeeb;overflow:hidden}
+.fill i{display:block;height:100%}
+.lots{display:flex;flex-wrap:wrap;gap:5px}
+.lot{font-family:var(--font-mono);font-size:11.5px;border:1px solid var(--line);border-radius:5px;padding:2px 6px;background:#f8faf7;cursor:pointer}
+.lot.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.stagebar{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;font-size:12.5px;text-align:center}
+.stagebar div{border:1px solid var(--line);border-radius:8px;padding:8px;background:#f8faf7}
+.stagebar .ar{color:var(--muted);font-size:18px}
+@media (max-width:820px){.bins{grid-template-columns:1fr}.scan{grid-template-columns:repeat(3,1fr);row-gap:12px}.stagebar{grid-template-columns:1fr}.stagebar .ar{display:none}}
+@media (max-width:1100px){.g4,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.g2,.g2r{grid-template-columns:1fr}.mtiles{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:820px){
+  .topin{overflow-x:auto;gap:12px;padding:0 14px}
+  .topr{display:none}
+  .dd{position:fixed;top:58px;left:8px;right:8px;min-width:0}
+  .main{padding:16px 14px 40px}.banner{padding:7px 14px}
+  .g4,.g3,.g2e,.pipe,.flow3,.timeline,.steps,.stat3{grid-template-columns:1fr 1fr}
+  .eq{grid-template-columns:1fr}
+  .dl,.docs,.form{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="topin">
+    <a class="logo" href="#dashboard"><span class="mk">SY</span><b>The SYNY</b></a>
+    <nav class="menu" id="menu" aria-label="Main">
+      <div class="mi" data-g="dashboard"><a href="#dashboard">Dashboard</a></div>
+      <div class="mi" data-g="suppliers"><button type="button" aria-haspopup="true">Suppliers</button>
+        <div class="dd"><div class="ddin">
+          <a href="#suppliers"><span class="ico">SD</span><span><b>Supplier directory</b><small>Add, edit and remove farms. Contacts, land, documents</small></span></a>
+          <a href="#map"><span class="ico">MP</span><span><b>Supplier map</b><small>Farm locations in Matopiba, open in Google Maps</small></span></a>
+          <a href="#portal"><span class="ico">PP</span><span><b>Producer portal</b><small>Farmers report harvest and production by year</small></span></a>
+        </div></div></div>
+      <div class="mi" data-g="verify"><button type="button" aria-haspopup="true">Verification</button>
+        <div class="dd"><div class="ddin">
+          <a href="#land"><span class="ico">1</span><span><b>Land check</b><small>Satellite imagery and cadastral split history</small></span></a>
+          <a href="#gfw"><span class="ico">2</span><span><b>Deforestation monitor</b><small>Tree cover loss by year, Global Forest Watch style</small></span></a>
+          <a href="#balance"><span class="ico">3</span><span><b>Stock &amp; harvest check</b><small>Do the tonnes add up for the hectares?</small></span></a>
+        </div></div></div>
+      <div class="mi" data-g="decide"><button type="button" aria-haspopup="true">Decisions</button>
+        <div class="dd"><div class="ddin">
+          <a href="#queue"><span class="ico">4</span><span><b>Delivery queue</b><small>Approve, hold or reject before mixing</small></span></a>
+          <a href="#dds"><span class="ico">EU</span><span><b>EU due diligence (DDS)</b><small>Statements for TRACES and the decision log</small></span></a>
+        </div></div></div>
+      <div class="mi" data-g="flows"><button type="button" aria-haspopup="true">Flows</button>
+        <div class="dd"><div class="ddin">
+          <a href="#tracking"><span class="ico">IF</span><span><b>Shipment tracking</b><small>Information flow: farm IDs linked to tickets, sent vs received</small></span></a>
+          <a href="#storage"><span class="ico">PF</span><span><b>Storage bins</b><small>Product flow: unchecked soy kept apart until approved</small></span></a>
+          <a href="#payments"><span class="ico">FF</span><span><b>Payments &amp; pilot costs</b><small>Finance flow: final payment tied to checks, cost per tonne</small></span></a>
+        </div></div></div>
+      <div class="mi" data-g="about"><button type="button" aria-haspopup="true">About</button>
+        <div class="dd"><div class="ddin">
+          <a href="#how"><span class="ico">?</span><span><b>How it works</b><small>The four-step approval process on one page</small></span></a>
+          <a href="#glossary"><span class="ico">A–Z</span><span><b>Glossary</b><small>Every term on this site in plain words</small></span></a>
+          <a href="#sources"><span class="ico">DB</span><span><b>Data sources</b><small>Which real datasets a live system would connect to</small></span></a>
+        </div></div></div>
+    </nav>
+    <div class="topr"><span>Pilot · Matopiba, Brazil</span><span class="avatar" title="Verification team">VT</span></div>
+  </div>
+</header>
+<div class="banner"><span><b>Student prototype by Team SYNY.</b> Proposed process for Louis Dreyfus Company, not an LDC system. All farms, people, IDs, imagery and figures are invented.</span><span>Harvest 2025/26 · data as of 18 Nov 2026</span></div>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<section class="view" id="v-dashboard">
+  <div class="head"><div><div class="crumb">Dashboard</div><h2>Pilot overview</h2><p>Four KPIs from our measurement framework over the first six pilot months, and what needs a decision today.</p></div><span class="pill info">Refreshed 18 Nov 2026, 07:00</span></div>
+  <div class="grid g4" id="kpis"></div>
+  <div class="grid g2">
+    <div class="card"><h3>EU-bound deliveries this month</h3><div class="pipe" id="pipe"></div><div class="bar" id="volbar"></div><div class="legend" id="vollegend"></div></div>
+    <div class="card"><h3>Open alerts</h3><div class="alerts" id="alerts"></div></div>
+  </div>
+</section>
+
+<!-- SUPPLIER DIRECTORY -->
+<section class="view" id="v-suppliers">
+  <div class="head"><div><div class="crumb">Suppliers</div><h2>Supplier directory</h2><p>Every farm behind an EU-bound delivery, including farms that sell through the cooperative (Tier-2). Select a farm to see its full profile.</p></div>
+    <button class="btn pri" id="addbtn">+ Add supplier</button></div>
+  <div class="grid g2r">
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" class="search" id="q" placeholder="Search farm, owner or town" aria-label="Search suppliers">
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="tw"><table><thead><tr><th>Farm</th><th>Tier</th><th class="r">Area</th><th>Status</th></tr></thead><tbody id="suprows"></tbody></table></div>
+      <p class="note" id="supcount" style="margin:10px 0 0"></p>
+    </div>
+    <div class="card" id="profile"></div>
+  </div>
+</section>
+
+<!-- MAP -->
+<section class="view" id="v-map">
+  <div class="head"><div><div class="crumb">Suppliers</div><h2>Supplier map · Matopiba</h2><p>Where each supplier farm is, which state it is in, and how Tier-2 farms connect through the cooperative. Click a pin for details.</p></div></div>
+  <div class="grid g2">
+    <div class="card"><div class="mapwrap"><svg id="mtmap" viewBox="0 0 600 560" role="img" aria-label="Map of the Matopiba states with supplier farms"></svg></div>
+      <div class="legend" style="margin-top:8px"><span><i style="background:#efe2b8"></i>Matopiba region (approx.)</span><span><i style="background:#e6e8e1"></i>Rest of the four states</span><span><span class="dot" style="background:var(--ok)"></span>Clear</span><span><span class="dot" style="background:var(--warn)"></span>Review</span><span><span class="dot" style="background:var(--bad)"></span>Flagged</span><span><span class="dot" style="background:#9aa59f"></span>Incomplete</span></div>
+      <p class="note" style="margin:6px 0 0">State borders and the Matopiba outline are simplified. Live maps open in Google Maps.</p></div>
+    <div class="mapcard" id="mapcard"></div>
+  </div>
+</section>
+
+<!-- PORTAL -->
+<section class="view" id="v-portal">
+  <div class="head"><div><div class="crumb">Suppliers · farmer view</div><h2>Producer portal</h2><p>Farm owners log in to report harvested area and production. Move the slider to compare years. Green means an increase on the year before, red means a decrease.</p></div>
+    <label style="font-size:13px;min-width:260px">Signed in as (simulated)<select id="pfarm"></select></label></div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="portal-h"><div><div class="note" id="pgreet"></div><div class="yearbig num" id="pyear"></div><div class="note">Harvest year</div></div><div id="pplaus"></div></div>
+      <div style="margin-top:12px"><input type="range" id="pslider" aria-label="Harvest year"><div class="yrlabels" id="pyl"></div></div>
+      <div class="mtiles" id="ptiles"></div>
+      <h3 style="margin:18px 0 6px">Production by year</h3>
+      <svg id="pchart" viewBox="0 0 620 210" style="width:100%;height:auto" role="img" aria-label="Production by year"></svg>
+    </div>
+    <div class="card">
+      <h3>Submit a harvest report</h3>
+      <p class="hint" style="margin-bottom:12px">Reports are checked against your registered area and the regional yield before your next delivery is approved.</p>
+      <form class="form" id="pform">
+        <label class="full" for="pseason">Season<select id="pseason"><option value="2027">2026/27 (planted Oct–Nov 2026)</option><option value="2026">2025/26 correction</option></select></label>
+        <label for="parea">Harvested area (ha)<input type="number" id="parea" min="0" step="1" required></label>
+        <label for="pprod">Production (tonnes)<input type="number" id="pprod" min="0" step="1" required></label>
+        <label class="full" for="pto">Delivered to<select id="pto"><option>LDC receiving silo (direct)</option><option>Coop. Oeste Baiano</option></select></label>
+        <label class="full" for="pfiles">Supporting documents (scale tickets, invoices)<input type="file" id="pfiles" multiple></label>
+        <label class="full" style="flex-direction:row;gap:8px;align-items:flex-start;font-weight:500;color:var(--ink)"><input type="checkbox" id="pconf" required style="margin-top:3px"> I confirm this harvest came only from the registered farm boundary.</label>
+        <div class="full btns"><button class="btn pri" type="submit">Submit report</button></div>
+      </form>
+      <div id="preceipt"></div>
+      <h3 style="margin:18px 0 6px">My submissions</h3>
+      <div class="tw"><table><thead><tr><th>Report</th><th>Season</th><th class="r">t/ha</th><th>Check</th></tr></thead><tbody id="psubs"></tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- LAND -->
+<section class="view" id="v-land">
+  <div class="head"><div><div class="crumb">Verification · step 2</div><h2>Land check</h2><p>Compare each farm boundary with imagery before and after the EUDR cut-off (31 Dec 2020) and with earlier land records. Drag the slider to compare years.</p></div>
+    <div class="seg" id="caseseg"><button data-c="ys" class="on">Fazenda Yunseong</button><button data-c="sb">Fazenda Sebastian</button></div></div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="sat-wrap"><canvas id="sat" width="720" height="440"></canvas><span class="sat-tag" style="left:8px">Dec 2020</span><span class="sat-tag" style="right:8px">Aug 2026</span></div>
+      <div class="ctrls">
+        <label for="split">Before / after <input type="range" id="split" min="0" max="720" value="360"></label>
+        <label for="res">Imagery <select id="res"><option value="30">Landsat · 30 m (public)</option><option value="10" selected>Sentinel-2 · 10 m (public)</option><option value="0.5">Commercial · 0.5 m (tasked)</option></select></label>
+        <label><input type="checkbox" id="lyrcar" checked> CAR boundaries</label>
+        <label><input type="checkbox" id="lyralert" checked> Clearing alerts</label>
+      </div>
+      <p class="note" style="margin-top:8px" id="resnote"></p>
+    </div>
+    <div class="card" id="landpanel"></div>
+  </div>
+  <div class="card"><h3>Cadastral history · Fazenda Yunseong</h3><p class="hint">Yearly CAR downloads show the property being split on paper while it stays one operation.</p><div class="timeline" id="timeline" style="margin-top:10px"></div></div>
+</section>
+
+<!-- GFW -->
+<section class="view" id="v-gfw">
+  <div class="head"><div><div class="crumb">Verification · step 2</div><h2>Deforestation monitor</h2><p>Tree cover loss by year around Fazenda Yunseong (Formosa do Rio Preto, BA), drawn the way Global Forest Watch shows it: 30 m pixels, coloured pink by the year trees were lost.</p></div>
+    <div class="btns"><a class="btn" href="https://www.globalforestwatch.org/map/" target="_blank" rel="noopener">Open Global Forest Watch ↗</a><a class="btn" href="https://www.globalforestwatch.org/dashboards/country/BRA/" target="_blank" rel="noopener">Brazil dashboard ↗</a></div></div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="sat-wrap"><canvas id="gfwc" width="720" height="444"></canvas><span class="sat-tag" style="left:8px" id="gfwtag"></span></div>
+      <div class="ctrls">
+        <label for="gfrom">From <select id="gfrom"></select></label>
+        <label for="gto">to <select id="gto"></select></label>
+        <button class="btn sm" id="gplay">▶ Play 2001–2025</button>
+        <label><input type="checkbox" id="gcar" checked> Farm boundaries</label>
+      </div>
+      <div class="legend" style="margin-top:10px"><span>Tree cover loss</span><span>2001 <span class="gfwleg"></span> 2025</span><span><i style="background:#1f4a2c"></i>Tree cover 2000</span><span><i style="background:#cbbf8e"></i>No tree cover</span></div>
+      <p class="note" style="margin:6px 0 0">Simulated pixels following the Global Forest Watch method (loss of more than half the canopy in a 30 m pixel, first year of loss only). The buttons above open the real data.</p>
+    </div>
+    <div class="card">
+      <h3>Loss inside the selected area</h3>
+      <div class="seg" id="gsel" style="margin:4px 0 12px"><button data-s="own" class="on">Yunseong polygon</button><button data-s="op">+ split parcel</button><button data-s="all">Whole view</button></div>
+      <div class="stat3" id="gstats"></div>
+      <svg id="gchart" viewBox="0 0 520 210" style="width:100%;height:auto" role="img" aria-label="Tree cover loss per year"></svg>
+      <p class="hint" id="gmsg" style="margin-top:8px"></p>
+    </div>
+  </div>
+  <div class="card"><h3>Recent deforestation alerts near suppliers</h3>
+    <div class="tw"><table><thead><tr><th>Date</th><th>Alert system</th><th>Confidence</th><th class="r">Area</th><th>Location</th><th>Action</th></tr></thead><tbody id="galerts"></tbody></table></div></div>
+</section>
+
+<!-- BALANCE -->
+<section class="view" id="v-balance">
+  <div class="head"><div><div class="crumb">Verification · step 3</div><h2>Stock &amp; harvest check</h2><p>Stock movements must balance for the same period, and each farm's production must be plausible for its harvested area and the local yield.</p></div>
+    <span class="pill mut">Harvest 2025/26 · Feb–Jul 2026</span></div>
+  <div class="card">
+    <h3>Stock check · Coop. Oeste Baiano, Luís Eduardo Magalhães</h3>
+    <div style="background:#f5f7f4;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:6px 0 14px">
+      <div style="font-size:16px;font-weight:700">Opening stock + Production received + Purchases = Deliveries + Closing stock + Losses</div>
+      <p class="hint" style="margin-top:4px">In plain words: everything that came into the cooperative must equal everything that left, plus what is still in storage, plus normal losses (drying, dust). If more left than came in, some soy has no recorded source.</p></div>
+    <div class="eq"><div class="side" id="inside"></div><div class="eqs">≠</div><div class="side" id="outside"></div></div>
+    <div class="gap" id="gapmsg"></div>
+    <div class="btns" style="margin-top:10px"><button class="btn sm" id="reqrec">Request supporting records from cooperative</button><span class="note" id="reqstat"></span></div>
+  </div>
+  <div class="card">
+    <h3>Harvest check: is the yield believable?</h3>
+    <p class="hint">Reference yield 3.80 t/ha for western Bahia 2025/26, tolerance ±15%. A live system takes the reference from CONAB municipal estimates. Figures come from the producer portal.</p>
+    <div class="tw" style="margin-top:8px"><table><thead><tr><th>Farm</th><th class="r">Harvested ha</th><th class="r">Declared t</th><th class="r">t/ha</th><th style="width:32%">vs reference band</th><th>Result</th></tr></thead><tbody id="yieldrows"></tbody></table></div>
+    <p class="note" style="margin-top:8px">Matching amounts do not prove origin. Purchase and transport records must also link each delivery to the reported farms.</p>
+  </div>
+</section>
+
+<!-- QUEUE -->
+<section class="view" id="v-queue">
+  <div class="head"><div><div class="crumb">Decisions · step 4</div><h2>Delivery queue</h2><p>The verification team reviews evidence from steps 1–3. Purchasing then approves, holds or rejects each delivery before it is mixed.</p></div><span class="pill mut" id="queuecount"></span></div>
+  <div class="grid g2">
+    <div class="card"><div class="tw"><table><thead><tr><th>Delivery</th><th>Supplier</th><th class="r">Tonnes</th><th>Status</th></tr></thead><tbody id="dlvrows"></tbody></table></div></div>
+    <div class="card" id="dlvpanel"></div>
+  </div>
+</section>
+
+<!-- DDS -->
+<section class="view" id="v-dds">
+  <div class="head"><div><div class="crumb">Decisions</div><h2>EU due diligence statements</h2><p>Approved deliveries get a due diligence statement (DDS) with farm geolocation, ready to submit to the EU TRACES system before the vessel leaves.</p></div></div>
+  <div class="card"><div class="tw"><table><thead><tr><th>DDS reference</th><th>Delivery</th><th>Product</th><th class="r">Tonnes</th><th>Geolocation</th><th>Status</th></tr></thead><tbody id="ddsrows"></tbody></table></div></div>
+  <div class="card"><h3>Decision log</h3><pre class="log" id="log"></pre></div>
+</section>
+
+
+<!-- TRACKING (information flow) -->
+<section class="view" id="v-tracking">
+  <div class="head"><div><div class="crumb">Flows · information flow</div><h2>Shipment tracking</h2><p>Each delivery carries farm IDs through every document: contract, electronic invoice (NF-e), truck scale ticket and LDC truck scale record. Tonnes sent are compared with tonnes received.</p></div><span class="pill mut">Tolerance ±0.5% per delivery</span></div>
+  <div class="grid g4" id="trktiles"></div>
+  <div class="grid g2">
+    <div class="card"><h3>Deliveries: sent vs received</h3><div class="tw"><table><thead><tr><th>Delivery</th><th>Origin</th><th class="r">Sent (t)</th><th class="r">Received (t)</th><th class="r">Diff.</th><th>Farm IDs</th></tr></thead><tbody id="trkrows"></tbody></table></div></div>
+    <div class="card" id="trkpanel"></div>
+  </div>
+</section>
+
+<!-- STORAGE (product flow) -->
+<section class="view" id="v-storage">
+  <div class="head"><div><div class="crumb">Flows · product flow</div><h2>Storage bins</h2><p>New deliveries wait in "Wait" bins until a decision is made. Only approved lots move into "EU" bins, which feed EU-bound crushing. Rejected lots leave the EU flow.</p></div></div>
+  <div class="card"><div class="stagebar"><div><b>Truck scale intake</b><br><span class="note">ticket + farm IDs</span></div><span class="ar">→</span><div><b>Waiting bins (Wait-1, Wait-2)</b><br><span class="note">no mixing while checks run</span></div><span class="ar">→</span><div><b>EU-ready bins (EU-1 to EU-3)</b> → EU crushing<br><span class="note">Rejected → Non-EU bin, non-EU sales</span></div></div></div>
+  <div class="bins" id="bins"></div>
+  <div class="grid g2e">
+    <div class="card" id="lotpanel"></div>
+    <div class="card"><h3>Mixing rule check</h3><p class="hint" style="margin-bottom:10px">Try moving soy between bins. The system blocks any move that would mix unchecked soy into EU-bound stock.</p>
+      <div class="form"><label for="mixfrom">From bin<select id="mixfrom"></select></label><label for="mixto">To bin<select id="mixto"></select></label>
+      <div class="full btns"><button class="btn pri" id="mixbtn" type="button">Check move</button></div></div>
+      <div id="mixres"></div></div>
+  </div>
+</section>
+
+<!-- PAYMENTS (finance flow) -->
+<section class="view" id="v-payments">
+  <div class="head"><div><div class="crumb">Flows · finance flow</div><h2>Payments &amp; pilot costs</h2><p>Suppliers get 90% on receipt. The final 10% is released only when checks are complete (contract clause 7.2). The pilot also tracks what verification and segregation cost per tonne.</p></div><span class="pill mut">Illustrative price $420/t</span></div>
+  <div class="grid g4" id="paytiles"></div>
+  <div class="card"><h3>Supplier payments this month</h3><div class="tw"><table><thead><tr><th>Delivery</th><th>Supplier</th><th class="r">Value</th><th class="r">Advance (90%)</th><th class="r">Final (10%)</th><th>Final payment status</th></tr></thead><tbody id="payrows"></tbody></table></div>
+    <p class="note" style="margin-top:8px">Decisions in the delivery queue update this table. Contract terms are agreed with suppliers at onboarding, alongside training and GPS support.</p></div>
+  <div class="grid g2">
+    <div class="card"><h3>Pilot cost per tonne (KPI 4)</h3><svg id="costchart" viewBox="0 0 620 240" style="width:100%;height:auto" role="img" aria-label="Pilot cost per month by category"></svg><div class="legend" id="costleg"></div></div>
+    <div class="card"><h3>Month 6 cost breakdown</h3><div class="tw"><table><thead><tr><th>Category</th><th class="r">Cost</th><th class="r">$/t</th></tr></thead><tbody id="costrows"></tbody></table></div><p class="note" style="margin-top:8px">Verified volume in month 6: 120,000 t. Ceiling $2.50/t.</p></div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="view" id="v-how">
+  <div class="head"><div><div class="crumb">About</div><h2>How it works</h2><p>One approval process that links land checks and amount checks, for direct and indirect suppliers, before soy is mixed.</p></div></div>
+  <div class="steps" id="steps"></div>
+  <div class="card"><h3>What changes in the three supply chain flows</h3>
+    <div class="grid g3" style="margin-top:6px">
+      <div><b>Product flow</b><p class="hint">Deliveries waiting for checks stay in separate holding bins. Only approved soy is mixed for EU-bound crushing.</p></div>
+      <div><b>Information flow</b><p class="hint">Farm IDs are linked to contracts, truck tickets and truck scale records. Amounts sent are compared with amounts received.</p></div>
+      <div><b>Finance flow</b><p class="hint">The final payment is released only after checks are complete, under agreed contract terms.</p></div>
+    </div></div>
+</section>
+
+
+<!-- GLOSSARY -->
+<section class="view" id="v-glossary">
+  <div class="head"><div><div class="crumb">About</div><h2>Glossary</h2><p>Terms used on this site, in plain words.</p></div><input type="text" class="search" id="gq" placeholder="Search a term" aria-label="Search glossary"></div>
+  <div class="card"><div class="tw"><table><thead><tr><th style="width:26%">Term</th><th>What it means here</th></tr></thead><tbody id="glrows"></tbody></table></div></div>
+</section>
+
+<!-- SOURCES -->
+<section class="view" id="v-sources">
+  <div class="head"><div><div class="crumb">About</div><h2>Data sources</h2><p>The prototype uses invented data. A live system would connect to these sources.</p></div></div>
+  <div class="card"><div class="tw"><table><thead><tr><th>Data</th><th>Real source</th><th>Used for</th><th>Step</th><th>In this prototype</th></tr></thead><tbody id="srcrows"></tbody></table></div></div>
+</section>
+</main>
+
+<!-- modals -->
+<div class="modal" id="addmodal" role="dialog" aria-modal="true" aria-labelledby="addt"><div class="mbox">
+  <h3 id="addt">Add supplier</h3><p class="hint" style="margin-bottom:14px">New suppliers start as "Under review" until their boundary and documents are checked.</p>
+  <form class="form" id="addform">
+    <label for="a-name">Farm name<input type="text" id="a-name" required placeholder="Fazenda …"></label>
+    <label for="a-owner">Owner<input type="text" id="a-owner" required></label>
+    <label for="a-phone">Phone<input type="tel" id="a-phone" placeholder="+55 66 9…"></label>
+    <label for="a-email">Email<input type="email" id="a-email"></label>
+    <label for="a-muni">Municipality<select id="a-muni"></select></label>
+    <label for="a-tier">Tier<select id="a-tier"><option value="Tier-1">Tier-1 · sells direct</option><option value="Tier-2">Tier-2 · via cooperative</option></select></label>
+    <label for="a-lat">Latitude<input type="number" id="a-lat" step="0.0001"></label>
+    <label for="a-lng">Longitude<input type="number" id="a-lng" step="0.0001"></label>
+    <label for="a-area">Total area (ha)<input type="number" id="a-area" min="1" required></label>
+    <label for="a-soy">Soy area (ha)<input type="number" id="a-soy" min="0" required></label>
+    <label for="a-car">CAR number<input type="text" id="a-car" placeholder="BA-…"></label>
+    <label for="a-poly">Boundary<select id="a-poly"><option value="Uploaded">Polygon file uploaded</option><option value="GPS point only">GPS point only</option><option value="Missing">No boundary yet</option></select></label>
+    <label class="full" for="a-file">Boundary file (GeoJSON or KML, optional)<input type="file" id="a-file" accept=".geojson,.json,.kml"></label>
+  </form>
+  <div class="mfoot"><button class="btn" id="addcancel">Cancel</button><button class="btn pri" id="addsave">Save supplier</button></div>
+</div></div>
+<div class="modal" id="delmodal" role="dialog" aria-modal="true" aria-labelledby="delt"><div class="mbox" style="max-width:440px">
+  <h3 id="delt">Remove supplier?</h3><p class="hint" id="deltext"></p>
+  <div class="mfoot"><button class="btn" id="delcancel">Cancel</button><button class="btn badf" id="delok">Remove</button></div>
+</div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ================= DATA (all invented) ================= */
+const MUNI={
+ 'Luís Eduardo Magalhães':[-12.096,-45.786,'Cerrado','BA'],
+ 'Formosa do Rio Preto':[-11.048,-45.193,'Cerrado','BA'],
+ 'Barreiras':[-12.152,-44.990,'Cerrado','BA'],
+ 'São Desidério':[-12.363,-44.973,'Cerrado','BA'],
+ 'Correntina':[-13.343,-44.637,'Cerrado','BA'],
+ 'Balsas':[-7.533,-46.035,'Cerrado','MA'],
+ 'Campos Lindos':[-7.990,-46.866,'Cerrado','TO'],
+ 'Uruçuí':[-7.230,-44.553,'Cerrado','PI'],
+ 'Baixa Grande do Ribeiro':[-7.849,-45.214,'Cerrado','PI']
+};
+const COOP={name:'Coop. Oeste Baiano',lat:-12.05,lng:-45.75};
+const DOCS=['CAR receipt','Land title (matrícula)','Environmental licence (LAU)','Supply contract'];
+let suppliers=[
+ {id:'S-01',name:'Fazenda Yura',owner:'Marcos Oliveira',phone:'+55 77 99812-4471',email:'contato@fazendayura.example',muni:'Luís Eduardo Magalhães',lat:-12.450,lng:-46.100,tier:'Tier-1',car:'BA-2919553-7C1E…A04F',area:2400,soy:1520,native:880,poly:'Verified',st:'ok',risk:'Low',cert:'RTRS (2024)',since:2017,lastSat:'12 Nov 2026',lastVisit:'Mar 2026',docs:['ok','ok','ok','ok'],ff:1.02,
+  note:'Large direct supplier with in-house GIS mapping. Fields cleared before 2008. No conversion after 31 Dec 2020.'},
+ {id:'S-02',name:'Fazenda Yunseong',owner:'Antônio Ribeiro',phone:'+55 77 99427-0158',email:'aribeiro.agro@example.com',muni:'Formosa do Rio Preto',lat:-10.950,lng:-45.450,tier:'Tier-2',car:'BA-2911105-3F8A…E21C',area:50,soy:50,native:0,poly:'Verified',st:'bad',risk:'High',cert:'None',since:2019,lastSat:'12 Nov 2026',lastVisit:'Never',docs:['ok','ok','warn','ok'],ff:1,
+  note:'Split on paper from a 100 ha property in 2022. The neighbouring parcel (registered to a relative) converted 47 ha in 2023. Declared yield is 185% of the regional reference.'},
+ {id:'S-03',name:'Fazenda Sebastian',owner:'Helena Costa',phone:'+55 99 98631-2290',email:'helena@fazendasebastian.example',muni:'Balsas',lat:-7.712,lng:-46.188,tier:'Tier-1',car:'MA-2101400-0D4C…B913',area:860,soy:520,native:340,poly:'Verified',st:'warn',risk:'Medium',cert:'None',since:2020,lastSat:'12 Nov 2026',lastVisit:'Booked 21 Nov 2026',docs:['ok','ok','ok','ok'],ff:.98,
+  note:'A 0.6 ha clearing appeared in 0.5 m imagery in March 2026. Public 10–30 m data shows nothing. Field visit booked.'},
+ {id:'S-04',name:'Fazenda Amsterdam',owner:'Paulo Schneider',phone:'+55 77 99204-8813',email:'paulo.schneider@example.com',muni:'São Desidério',lat:-12.750,lng:-44.950,tier:'Tier-2',car:'BA-2929057-C27E…19A8',area:640,soy:410,native:230,poly:'Verified',st:'ok',risk:'Low',cert:'None',since:2018,lastSat:'12 Nov 2026',lastVisit:'Jun 2025',docs:['ok','ok','ok','ok'],ff:1,
+  note:'No conversion detected. Yield within tolerance every year.'},
+ {id:'S-05',name:'Fazenda Bijlmer',owner:'Joana Pereira',phone:'+55 77 99877-3045',email:'(no email, contact by phone)',muni:'Correntina',lat:-13.550,lng:-44.700,tier:'Tier-2',car:'Not on file',area:22,soy:18,native:4,poly:'Missing',st:'mut',risk:'Unknown',cert:'None',since:2022,lastSat:'Not possible',lastVisit:'Never',docs:['bad','ok','mut','ok'],ff:.96,
+  note:'Family smallholding. No boundary polygon on file, so land checks cannot run. Needs a GPS boundary walk with the supplier support team.'},
+ {id:'S-06',name:'Fazenda SCI',owner:'Ricardo Almeida',phone:'+55 77 99550-6127',email:'ricardo@fazendasci.example',muni:'Barreiras',lat:-11.850,lng:-44.750,tier:'Tier-2',car:'BA-2903201-6A13…F0E5',area:1120,soy:720,native:400,poly:'Verified',st:'ok',risk:'Low',cert:'RTRS (2025)',since:2016,lastSat:'12 Nov 2026',lastVisit:'Sep 2025',docs:['ok','ok','ok','ok'],ff:1.01,
+  note:'No conversion detected. Yield within tolerance every year.'}
+];
+const stLabel={ok:'Clear',warn:'Under review',bad:'Flagged',mut:'Incomplete'};
+const stColor={ok:'#23824f',warn:'#b0700a',bad:'#c0352b',mut:'#9aa59f'};
+const docLabel={ok:'On file',warn:'Expiring',bad:'Missing',mut:'Not required yet'};
+
+/* production history (harvest year = year the harvest ends) */
+const YF={2019:.97,2020:1.0,2021:1.02,2022:1.03,2023:1.06,2024:.88,2025:1.05,2026:1.04};
+const refY=y=>3.65*(YF[y]||1.04);
+const hist={};
+function buildHist(s){
+  const h={};
+  for(let y=2019;y<=2026;y++){
+    if(y<s.since) continue;
+    let area=Math.round(s.soy*(0.92+0.08*(y-2019)/7)), prod=Math.round(area*refY(y)*s.ff);
+    h[y]={area,prod};
+  }
+  if(s.id==='S-02'){ Object.assign(h,{2019:{area:50,prod:177},2020:{area:50,prod:183},2021:{area:50,prod:186},2022:{area:50,prod:188},2023:{area:50,prod:268},2024:{area:50,prod:295},2025:{area:50,prod:340},2026:{area:50,prod:352}}); }
+  if(s.id==='S-05'){ for(const y in h) h[y].area=18; for(const y in h) h[y].prod=Math.round(18*refY(+y)*s.ff); }
+  hist[s.id]=h;
+}
+suppliers.forEach(buildHist);
+const subs=[];
+suppliers.forEach(s=>{ if(hist[s.id][2026]){const h=hist[s.id][2026]; subs.push({id:'HR-26-'+s.id.slice(2)+'1',sid:s.id,season:'2025/26',y:h.prod/h.area,ok:Math.abs(h.prod/h.area/refY(2026)-1)<=.15});}});
+
+const kpis=[
+ {dp:0,lab:'KPI 1 · Tier-2 polygon traceability',scor:'SCOR: Source',unit:'%',s:[46,51,57,63,68,74],tgt:'Target 100% of EU-bound Tier-2 volume',good:'up'},
+ {dp:1,lab:'KPI 2 · Deforestation- & conversion-free',scor:'SCOR: Source / Make',unit:'%',s:[88.1,89.0,90.2,91.5,92.4,93.8],tgt:'Target 100%, land-cover inclusive',good:'up'},
+ {dp:1,lab:'KPI 3 · Customs first-pass clearance',scor:'SCOR: Deliver',unit:'%',s:[94.0,95.1,96.3,97.0,97.8,98.4],tgt:'Target > 99.5% (simulated DDS checks)',good:'up'},
+ {dp:2,lab:'KPI 4 · Verification cost per tonne',scor:'SCOR: Enable',unit:'$/t',s:[0.95,1.40,1.78,2.05,2.21,2.18],tgt:'Ceiling $2.50 per tonne',good:'down'}
+];
+
+const dlv=[
+ {id:'DLV-26-0412',sup:'Coop. Oeste Baiano',t:1080,lots:'Yunseong 352 t · SCI 728 t',farms:['S-02','S-06'],st:'pending',rec:'hold',
+  checks:[['ok','Sources registered','Both farms have verified CAR polygons.'],
+          ['ok','Forest check (EUDR rule)','No forest loss after 31 Dec 2020 on either polygon.'],
+          ['bad','Nature check (forest and savanna)','Yunseong was split in 2022. Its neighbouring parcel converted 47 ha in 2023 under the same operation.'],
+          ['bad','Stock &amp; harvest check','Cooperative out-flow exceeds recorded in-flow by 428 t. Yunseong yield 7.04 t/ha, 185% of reference.'],
+          ['ok','Transport records','Truck tickets link lots to the cooperative silo.']]},
+ {id:'DLV-26-0415',sup:'Fazenda Sebastian',t:1650,lots:'Own production',farms:['S-03'],st:'pending',rec:'hold',
+  checks:[['ok','Sources registered','Verified CAR polygon, 860 ha.'],
+          ['ok','Forest check (EUDR rule)','No loss detected in public 10 m imagery.'],
+          ['warn','Nature check (forest and savanna)','0.6 ha clearing visible only in 0.5 m imagery (Mar 2026). Needs an on-site check.'],
+          ['ok','Stock &amp; harvest check','Within tolerance.'],
+          ['ok','Transport records','Linked to farm silo and truck scale records.']]},
+ {id:'DLV-26-0418',sup:'Coop. Oeste Baiano',t:310,lots:'Bijlmer 65 t · Amsterdam 245 t',farms:['S-05','S-04'],st:'pending',rec:'hold',
+  checks:[['bad','Sources registered','Fazenda Bijlmer has no boundary polygon (65 t).'],
+          ['mut','Forest check (EUDR rule)','Cannot be checked for Bijlmer without a polygon.'],
+          ['mut','Nature check (forest and savanna)','Cannot be checked for Bijlmer without a polygon.'],
+          ['ok','Stock &amp; harvest check','Yields within tolerance.'],
+          ['ok','Transport records','Linked to cooperative silo.']]},
+ {id:'DLV-26-0420',sup:'Coop. Oeste Baiano',t:412,lots:'Amsterdam 412 t',farms:['S-04'],st:'pending',rec:'hold',
+  checks:[['ok','Sources registered','Verified CAR polygon.'],
+          ['ok','Forest check (EUDR rule)','No forest loss after cut-off.'],
+          ['ok','Nature check (forest and savanna)','No conversion after cut-off.'],
+          ['ok','Stock &amp; harvest check','Within tolerance.'],
+          ['bad','Transport records','LDC truck scale received 431.6 t, cooperative tickets show 412.0 t (+4.8%). 19.6 t arrived without paperwork.']]},
+ {id:'DLV-26-0409',sup:'Fazenda Yura',t:2400,lots:'Own production',farms:['S-01'],st:'pending',rec:'approve',
+  checks:[['ok','Sources registered','Verified CAR polygon, 2,400 ha.'],
+          ['ok','Forest check (EUDR rule)','No forest loss after cut-off.'],
+          ['ok','Nature check (forest and savanna)','No conversion of any native vegetation after cut-off.'],
+          ['ok','Stock &amp; harvest check','Within tolerance.'],
+          ['ok','Transport records','Linked end to end.']]},
+ {id:'DLV-26-0402',sup:'Coop. Oeste Baiano',t:900,lots:'Amsterdam 600 t · SCI 300 t',farms:['S-04','S-06'],st:'approved',rec:'approve',
+  checks:[['ok','Sources registered',''],['ok','Forest check (EUDR rule)',''],['ok','Nature check (forest and savanna)',''],['ok','Stock &amp; harvest check',''],['ok','Transport records','']]},
+ {id:'DLV-26-0398',sup:'Coop. Oeste Baiano',t:640,lots:'Third-party lot, origin not registered',farms:[],st:'rejected',rec:'reject',
+  checks:[['bad','Sources registered','Lot bought from a non-member trader with no farm IDs.'],['mut','Forest check (EUDR rule)','Cannot be checked.'],['mut','Nature check (forest and savanna)','Cannot be checked.'],['bad','Stock &amp; harvest check','Not traceable to any harvest report.'],['ok','Transport records','']]}
+];
+const logLines=['2026-11-14 16:02  DLV-26-0402  APPROVED  verification team (A. Souza)','2026-11-12 10:41  DLV-26-0398  REJECTED  origin not registered'];
+
+/* ================= HELPERS ================= */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sup=id=>suppliers.find(s=>s.id===id);
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2600);}
+const gmaps=s=>`https://www.google.com/maps/@?api=1&map_action=map&center=${s.lat},${s.lng}&zoom=14&basemap=satellite`;
+const gsearch=s=>`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
+const reserveReq=(b,st)=>b==='Amazon'?80:(st==='MA'||st==='TO')?35:20;
+
+/* ================= ROUTING + MENU ================= */
+const groups={dashboard:'dashboard',suppliers:'suppliers',map:'suppliers',portal:'suppliers',land:'verify',gfw:'verify',balance:'verify',queue:'decide',dds:'decide',how:'about',sources:'about',glossary:'about',tracking:'flows',storage:'flows',payments:'flows'};
+function route(){
+  let v=location.hash.slice(1); if(!groups[v]) v='dashboard';
+  $$('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
+  $$('.mi').forEach(m=>m.classList.toggle('cur',m.dataset.g===groups[v]));
+  $$('.dd a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+v));
+  $$('.mi').forEach(m=>{m.classList.remove('open');if(m.matches(':hover'))m.classList.add('shut');});
+  if(document.activeElement&&document.activeElement.closest('.menu')) document.activeElement.blur();
+  if(v==='land') drawSat();
+  if(v==='gfw') drawGfw();
+  if(v==='map') renderMap();
+  if(v==='tracking') renderTracking();
+  if(v==='storage') renderStorage();
+  if(v==='payments') renderPayments();
+  if(v==='queue') renderQueue();
+  if(v==='portal') renderPortal();
+  if(v==='suppliers') renderSuppliers();
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',route);
+$$('.mi').forEach(m=>{
+  m.addEventListener('mouseleave',()=>m.classList.remove('shut','open'));
+  const b=m.querySelector('button');
+  if(b) b.addEventListener('click',e=>{const o=m.classList.contains('open');$$('.mi').forEach(x=>x.classList.remove('open'));m.classList.remove('shut');if(!o)m.classList.add('open');e.stopPropagation();});
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.menu'))$$('.mi').forEach(x=>x.classList.remove('open'))});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$$('.mi').forEach(x=>x.classList.remove('open'));closeModals();}});
+
+/* ================= DASHBOARD ================= */
+function spark(s){
+  const W=240,H=44,p=4, mn=Math.min(...s)*.92, mx=Math.max(...s)*1.04;
+  const X=i=>p+i*(W-2*p)/(s.length-1), Y=v=>H-p-(v-mn)/(mx-mn)*(H-2*p);
+  const d=s.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(' ');
+  const l=s.length-1;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="${W}" y1="${H-p}" y2="${H-p}" stroke="#e3e7e2"/>
+   <path d="${d} L${X(l)} ${H-p} L${X(0)} ${H-p}Z" fill="var(--accent-soft)" opacity=".7"/><path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+   <circle cx="${X(l)}" cy="${Y(s[l])}" r="3.5" fill="var(--accent)"/></svg>`;
+}
+function renderDash(){
+  $('#kpis').innerHTML=kpis.map(k=>{
+    const v=k.s[k.s.length-1], d=v-k.s[k.s.length-2], better=k.good==='up'?d>=0:d<=0;
+    const val=k.unit==='%'?v.toFixed(k.dp)+'%':'$'+v.toFixed(2);
+    const dt=(d>=0?'+':'−')+(k.unit==='%'?Math.abs(d).toFixed(1)+' pts':'$'+Math.abs(d).toFixed(2));
+    return `<div class="card kpi"><span class="lab">${k.lab}</span><span class="val num">${val}</span>
+     <span class="pill ${better?'ok':'warn'}" style="align-self:flex-start">${dt} vs last month</span>${spark(k.s)}<span class="tgt">${k.tgt}</span><span class="scor">${k.scor} · pilot months 1–6</span></div>`}).join('');
+  const sum=st=>dlv.filter(d=>d.st===st).reduce((a,d)=>a+d.t,0), cnt=st=>dlv.filter(d=>d.st===st).length;
+  const a=sum('approved'),h=sum('held'),r=sum('rejected'),p=sum('pending'),tot=a+h+r+p||1;
+  $('#pipe').innerHTML=[['Awaiting decision',p,cnt('pending')],['Held for checks',h,cnt('held')],['Approved for EU',a,cnt('approved')],['Rejected',r,cnt('rejected')]]
+    .map(([l,t,n])=>`<div><b class="num">${fmt(t)} t</b><span>${l} · ${n} deliver${n===1?'y':'ies'}</span></div>`).join('');
+  const seg=[[a,'var(--ok)','Approved'],[h,'var(--warn)','Held'],[p,'#b9c4be','Awaiting'],[r,'var(--bad)','Rejected']];
+  $('#volbar').innerHTML=seg.map(([v,c])=>`<i style="width:${v/tot*100}%;background:${c}"></i>`).join('');
+  $('#vollegend').innerHTML=seg.map(([v,c,l])=>`<span><i style="background:${c}"></i>${l} ${Math.round(v/tot*100)}%</span>`).join('')+`<span>Total ${fmt(tot)} t</span>`;
+  const noPoly=suppliers.filter(s=>s.poly!=='Verified'&&s.poly!=='Uploaded');
+  const al=[
+   ['var(--bad)','Paper subdivision linked to conversion','Fazenda Yunseong · neighbouring parcel cleared 47 ha in 2023','land','Land check'],
+   ['var(--bad)','19.6 t arrived without paperwork','DLV-26-0420 · truck scale +4.8% vs cooperative tickets','tracking','Tracking'],
+   ['var(--bad)','Stock check gap of 428 t','Coop. Oeste Baiano · harvest 2025/26','balance','Stock check'],
+   ['var(--gfw)','Tree cover loss after cut-off','Formosa do Rio Preto, BA · 47 ha in 2023 next to a supplier','gfw','Monitor'],
+   ['var(--warn)','Small clearing in high-res imagery','Fazenda Sebastian · 0.6 ha, March 2026','land','Land check']];
+  if(noPoly.length) al.push(['#9aa59f',`${noPoly.length} supplier${noPoly.length>1?'s':''} without a boundary polygon`,noPoly.map(s=>s.name).join(', '),'suppliers','Directory']);
+  $('#alerts').innerHTML=al.map(([c,t,s,v,l])=>`<div class="alert"><i class="s" style="background:${c}"></i><div><b>${t}</b><p>${esc(s)}</p></div><a href="#${v}">${l} →</a></div>`).join('');
+}
+
+/* ================= SUPPLIER DIRECTORY ================= */
+let selSup='S-02', filt='all';
+const filters=[['all','All'],['Tier-1','Tier-1'],['Tier-2','Tier-2'],['action','Needs action']];
+function renderChips(){
+  $('#chips').innerHTML=filters.map(([k,l])=>{
+    const n=suppliers.filter(s=>k==='all'||s.tier===k||(k==='action'&&s.st!=='ok')).length;
+    return `<button class="chip ${filt===k?'on':''}" data-k="${k}">${l} <span style="opacity:.6">${n}</span></button>`}).join('');
+  $$('#chips .chip').forEach(b=>b.onclick=()=>{filt=b.dataset.k;renderSuppliers()});
+}
+function renderSuppliers(){
+  renderChips();
+  const q=$('#q').value.trim().toLowerCase();
+  const list=suppliers.filter(s=>(filt==='all'||s.tier===filt||(filt==='action'&&s.st!=='ok'))&&(!q||(s.name+' '+s.owner+' '+s.muni).toLowerCase().includes(q)));
+  $('#suprows').innerHTML=list.map(s=>`<tr class="click ${s.id===selSup?'sel':''}" data-id="${s.id}" tabindex="0">
+    <td><b>${esc(s.name)}</b><span class="sub">${esc(s.muni)} · ${esc(s.owner)}</span></td>
+    <td>${s.tier}<span class="sub">${s.tier==='Tier-1'?'Direct':COOP.name}</span></td>
+    <td class="r num" style="white-space:nowrap">${fmt(s.area)} ha</td>
+    <td><span class="pill ${s.st}">${stLabel[s.st]}</span></td></tr>`).join('')||`<tr><td colspan="4" class="hint">No suppliers match.</td></tr>`;
+  $$('#suprows tr[data-id]').forEach(tr=>{const go=()=>{selSup=tr.dataset.id;renderSuppliers()};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go()}});
+  $('#supcount').textContent=`${list.length} of ${suppliers.length} suppliers shown · ${suppliers.filter(s=>s.poly==='Verified').length} with verified polygons`;
+  renderProfile();
+}
+function renderProfile(){
+  const s=sup(selSup);
+  if(!s){$('#profile').innerHTML='<p class="hint">Select a supplier.</p>';return;}
+  const biome=MUNI[s.muni]?MUNI[s.muni][2]:'—', stt=MUNI[s.muni]?MUNI[s.muni][3]:'BA', req=reserveReq(biome,stt), natPct=s.area?s.native/s.area*100:0;
+  const small=s.area<=100, resOk=natPct>=req;
+  const other=Math.max(0,s.area-s.soy-s.native);
+  const openD=dlv.filter(d=>d.farms.includes(s.id)&&(d.st==='pending'||d.st==='held')).length;
+  $('#profile').innerHTML=`
+   <div class="prof-h"><div><h3>${esc(s.name)}</h3><p class="mono" style="margin:4px 0 8px;color:var(--muted)">${s.id} · CAR ${esc(s.car)}</p>
+     <div class="btns"><span class="pill ${s.st}">${stLabel[s.st]}</span><span class="pill mut">${s.tier} · ${s.tier==='Tier-1'?'Direct':COOP.name}</span><span class="pill ${s.risk==='High'?'bad':s.risk==='Medium'?'warn':s.risk==='Low'?'ok':'mut'}">Risk: ${s.risk}</span></div></div>
+     <div class="btns"><a class="btn sm" href="#portal" id="toportal">Harvest reports</a><button class="btn sm bad" id="delbtn">Remove</button></div></div>
+   <div class="sect"><p style="margin:0">${esc(s.note)}</p></div>
+   <div class="sect"><h4>Contact</h4><dl class="dl">
+     <div><dt>Owner</dt><dd>${esc(s.owner)}</dd></div><div><dt>Phone</dt><dd class="num">${esc(s.phone)}</dd></div>
+     <div><dt>Email</dt><dd>${esc(s.email)}</dd></div><div><dt>Supplier since</dt><dd>${s.since}</dd></div></dl></div>
+   <div class="sect"><h4>Location</h4><dl class="dl">
+     <div><dt>Municipality</dt><dd>${esc(s.muni)}, ${stt}</dd></div><div><dt>Biome</dt><dd>${biome}</dd></div>
+     <div><dt>Coordinates</dt><dd class="mono">${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}</dd></div><div><dt>Boundary</dt><dd>${s.poly==='Verified'?'Polygon verified':esc(s.poly)}</dd></div></dl>
+     <div class="btns" style="margin-top:10px"><a class="btn sm pri" href="${gmaps(s)}" target="_blank" rel="noopener">Satellite view in Google Maps ↗</a><a class="btn sm" href="#map" id="tomap">Show on supplier map</a><button class="btn sm" id="copyc">Copy coordinates</button></div></div>
+   <div class="sect"><h4>Land</h4>
+     <div class="landbar"><i style="width:${s.soy/s.area*100}%;background:#c9b26a"></i><i style="width:${s.native/s.area*100}%;background:#3f6b3a"></i><i style="width:${other/s.area*100}%;background:#cfd5cf"></i></div>
+     <div class="legend"><span><i style="background:#c9b26a"></i>Soy ${fmt(s.soy)} ha</span><span><i style="background:#3f6b3a"></i>Native vegetation ${fmt(s.native)} ha</span>${other?`<span><i style="background:#cfd5cf"></i>Other ${fmt(other)} ha</span>`:''}<span>Total ${fmt(s.area)} ha</span></div>
+     <p class="hint" style="margin-top:8px">Legal reserve: ${req}% required (${stt==='MA'||stt==='TO'?'Cerrado inside the Legal Amazon':'Cerrado outside the Legal Amazon'}). On file ${natPct.toFixed(0)}%. ${resOk?'<span class="pill ok">Meets requirement</span>':small?'<span class="pill warn">Small property rule may apply</span>':'<span class="pill bad">Deficit</span>'}</p></div>
+   <div class="sect"><h4>Documents</h4><div class="docs">${DOCS.map((d,i)=>`<div class="doc"><span>${d}</span><span class="pill ${s.docs[i]}">${docLabel[s.docs[i]]}</span></div>`).join('')}</div></div>
+   <div class="sect"><h4>Checks</h4><dl class="dl">
+     <div><dt>Last satellite check</dt><dd>${esc(s.lastSat)}</dd></div><div><dt>Last field visit</dt><dd>${esc(s.lastVisit)}</dd></div>
+     <div><dt>Certification</dt><dd>${esc(s.cert)}</dd></div><div><dt>Open deliveries</dt><dd>${openD}</dd></div></dl>
+     ${s.poly!=='Verified'?`<div class="btns" style="margin-top:10px"><button class="btn sm ok" id="walkbtn">Schedule GPS boundary walk</button><span class="note" id="walkst"></span></div>`:''}</div>`;
+  $('#delbtn').onclick=()=>openDel(s);
+  $('#tomap').onclick=()=>{selMap=s.id};
+  $('#toportal').onclick=()=>{pSel=s.id;pYear=null};
+  $('#copyc').onclick=()=>{try{navigator.clipboard.writeText(`${s.lat}, ${s.lng}`).then(()=>toast('Coordinates copied'),()=>toast(`${s.lat}, ${s.lng}`));}catch(e){toast(`${s.lat}, ${s.lng}`)}};
+  if($('#walkbtn')) $('#walkbtn').onclick=()=>{$('#walkbtn').disabled=true;$('#walkst').textContent='Booked for 25 Nov 2026. Training and GPS kit provided at no cost to the farmer.'};
+}
+$('#q').addEventListener('input',renderSuppliers);
+
+/* add / delete */
+function closeModals(){$$('.modal').forEach(m=>m.classList.remove('on'))}
+$('#a-muni').innerHTML=Object.keys(MUNI).map(m=>`<option>${m}</option>`).join('');
+function fillCoords(){const m=MUNI[$('#a-muni').value];$('#a-lat').value=(m[0]+(Math.random()-.5)*.1).toFixed(4);$('#a-lng').value=(m[1]+(Math.random()-.5)*.1).toFixed(4);}
+$('#a-muni').onchange=fillCoords;
+$('#addbtn').onclick=()=>{$('#addform').reset();fillCoords();$('#addmodal').classList.add('on');$('#a-name').focus();};
+$('#addcancel').onclick=closeModals;
+$('#a-file').onchange=()=>{if($('#a-file').files.length)$('#a-poly').value='Uploaded'};
+$('#addsave').onclick=()=>{
+  const f=$('#addform'); if(!f.reportValidity()) return;
+  const area=+$('#a-area').value, soy=Math.min(+$('#a-soy').value,area), poly=$('#a-poly').value;
+  const n=suppliers.reduce((m,s)=>Math.max(m,+s.id.slice(2)),0)+1, id='S-'+String(n).padStart(2,'0');
+  const s={id,name:$('#a-name').value.trim(),owner:$('#a-owner').value.trim(),phone:$('#a-phone').value||'—',email:$('#a-email').value||'—',muni:$('#a-muni').value,
+    lat:+$('#a-lat').value,lng:+$('#a-lng').value,tier:$('#a-tier').value,car:$('#a-car').value||'Not on file',area,soy,native:Math.round((area-soy)*.8),
+    poly,st:(poly==='Uploaded'?'warn':(area>4?'mut':'warn')),risk:'Unknown',cert:'None',since:2026,lastSat:poly==='Uploaded'?'Queued':'Not possible',lastVisit:'Never',
+    docs:[$('#a-car').value?'ok':'bad','mut','mut','mut'],ff:1,
+    note:poly==='Uploaded'?'New supplier. Boundary uploaded, first satellite and document checks are queued.':'New supplier. A boundary polygon is needed before land checks can run (EUDR requires polygons for plots over 4 ha).'};
+  suppliers.push(s); hist[id]={}; selSup=id; filt='all'; $('#q').value='';
+  closeModals(); renderAll(); toast(`${s.name} added to the registry`);
+};
+let delTarget=null;
+function openDel(s){delTarget=s;const n=dlv.filter(d=>d.farms.includes(s.id)&&d.st==='pending').length;
+  $('#deltext').textContent=`${s.name} will be removed from the supplier registry, the map and the producer portal.${n?` It has ${n} delivery awaiting a decision.`:''} This only changes the demo data.`;
+  $('#delmodal').classList.add('on');}
+$('#delcancel').onclick=closeModals;
+$('#delok').onclick=()=>{suppliers=suppliers.filter(s=>s!==delTarget);if(selSup===delTarget.id)selSup=suppliers[0]&&suppliers[0].id;if(pSel===delTarget.id)pSel=suppliers[0]&&suppliers[0].id;if(selMap===delTarget.id)selMap=suppliers[0]&&suppliers[0].id;
+  closeModals();renderAll();toast(`${delTarget.name} removed`);};
+$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals()}));
+
+/* ================= MAP ================= */
+let selMap='S-02';
+const ST={
+ MA:[[-48.4,-5.2],[-48.6,-4.5],[-48.2,-3.0],[-46.0,-1.1],[-44.0,-2.3],[-41.8,-2.8],[-42.5,-4.0],[-43.0,-6.5],[-45.5,-8.5],[-45.9,-10.2],[-46.6,-9.2],[-47.5,-8.0],[-47.3,-6.5]],
+ TO:[[-48.4,-5.2],[-47.3,-6.5],[-47.5,-8.0],[-46.6,-9.2],[-45.9,-10.2],[-46.2,-11.6],[-46.3,-12.9],[-47.4,-13.3],[-49.3,-13.0],[-50.2,-12.8],[-50.5,-10.5],[-49.5,-8.5],[-49.2,-6.8]],
+ PI:[[-41.8,-2.8],[-40.9,-3.9],[-40.5,-7.4],[-40.9,-9.0],[-42.5,-9.5],[-43.6,-10.6],[-45.0,-10.9],[-45.9,-10.2],[-45.5,-8.5],[-43.0,-6.5],[-42.5,-4.0]],
+ BA:[[-45.0,-10.9],[-43.6,-10.6],[-42.5,-9.5],[-40.9,-9.0],[-39.0,-8.6],[-38.3,-9.5],[-37.4,-11.0],[-38.0,-12.9],[-39.0,-14.5],[-39.1,-17.7],[-40.2,-17.9],[-40.5,-16.0],[-41.5,-15.2],[-43.0,-14.6],[-44.2,-14.3],[-45.9,-15.0],[-46.3,-12.9],[-46.2,-11.6],[-45.9,-10.2]]};
+const PX=(lng,lat)=>[60+(lng+50)*56,20+(-5-lat)*56];
+const poly=pts=>pts.map((p,i)=>(i?'L':'M')+PX(...p).map(v=>v.toFixed(1)).join(' ')).join(' ')+'Z';
+function renderMap(){
+  if(!sup(selMap)&&suppliers[0]) selMap=suppliers[0].id;
+  const region=[[-50.6,-5.0],[-43.0,-5.0],[-42.6,-8.0],[-43.5,-10.5],[-43.9,-12.5],[-44.0,-14.6],[-46.5,-15.2],[-50.6,-15.2]];
+  const river=[[-44.3,-14.6],[-43.8,-13.2],[-43.5,-11.6],[-42.9,-10.6],[-41.6,-9.4]];
+  let s=`<defs><clipPath id="stclip">${Object.values(ST).map(p=>`<path d="${poly(p)}"/>`).join('')}</clipPath></defs>
+   <rect width="600" height="560" fill="#eef2f4" rx="8"/>
+   <g clip-path="url(#stclip)"><rect width="600" height="560" fill="#e6e8e1"/><path d="${poly(region)}" fill="#efe2b8"/></g>
+   ${Object.values(ST).map(p=>`<path d="${poly(p)}" fill="none" stroke="#55635c" stroke-width="1.4"/>`).join('')}
+   <path d="${river.map((p,i)=>(i?'L':'M')+PX(...p).join(' ')).join(' ')}" fill="none" stroke="#8fb6c9" stroke-width="3"/>
+   <text x="${PX(-43.75,-12.3)[0]}" y="${PX(-43.75,-12.3)[1]}" font-size="10" fill="#4f7d92" font-style="italic" transform="rotate(-70 ${PX(-43.75,-12.3).join(' ')})">Rio São Francisco</text>
+   ${[['TOCANTINS',-48.6,-9.6],['MARANHÃO',-46.3,-5.8],['PIAUÍ',-43.4,-7.6],['BAHIA',-42.6,-12.6]].map(([n,ln,la])=>`<text x="${PX(ln,la)[0]}" y="${PX(ln,la)[1]}" font-size="12" letter-spacing="1.5" fill="#7a857f" font-weight="700" text-anchor="middle">${n}</text>`).join('')}
+   <text x="14" y="24" font-size="13" font-weight="700" fill="#17221d">Matopiba, Brazil</text>`;
+  [['Palmas',-10.18,-48.33],['Bom Jesus',-9.07,-44.36]].forEach(([n,la,ln])=>{const[x,y]=PX(ln,la);s+=`<rect x="${x-3}" y="${y-3}" width="6" height="6" fill="#55635c"/><text x="${x+6}" y="${y+4}" font-size="10.5" fill="#55635c">${n}</text>`});
+  const [cx,cy]=PX(COOP.lng,COOP.lat);
+  suppliers.filter(f=>f.tier==='Tier-2').forEach(f=>{const[x,y]=PX(f.lng,f.lat);s+=`<line x1="${x}" y1="${y}" x2="${cx}" y2="${cy}" stroke="#7d8b84" stroke-dasharray="4 3"/>`});
+  s+=`<rect x="${cx-7}" y="${cy-7}" width="14" height="14" rx="3" fill="#fff" stroke="#17221d" stroke-width="2"/><text x="${cx-12}" y="${cy-10}" text-anchor="end" font-size="10.5" font-weight="700" fill="#17221d" paint-order="stroke" stroke="#f6f4ea" stroke-width="3">${COOP.name}</text>`;
+  const LO={'S-01':[-12,16,'end'],'S-02':[12,-6,'start'],'S-03':[12,4,'start'],'S-04':[12,4,'start'],'S-05':[12,4,'start'],'S-06':[12,-4,'start']};
+  suppliers.forEach(f=>{const[x,y]=PX(f.lng,f.lat),on=f.id===selMap,o=LO[f.id]||[12,-6,'start'];
+    s+=`<g class="pin ${on?'on':''}" data-id="${f.id}" tabindex="0"><circle class="c" cx="${x}" cy="${y}" r="${on?9:7}" fill="${stColor[f.st]}" stroke="#fff" stroke-width="2.5"/>
+     <text x="${x+o[0]}" y="${y+o[1]}" text-anchor="${o[2]}" font-size="11.5" font-weight="${on?700:600}" fill="#17221d" paint-order="stroke" stroke="#f6f4ea" stroke-width="3">${esc(f.name.replace('Fazenda ',''))}</text></g>`});
+  const sb=PX(-49.6,-14.0), sl=56*0.9;
+  s+=`<rect x="${sb[0]}" y="${sb[1]}" width="${sl}" height="4" fill="#17221d"/><text x="${sb[0]}" y="${sb[1]-5}" font-size="10" fill="#55635c">≈100 km</text>`;
+  $('#mtmap').innerHTML=s;
+  $$('#mtmap .pin').forEach(g=>{const go=()=>{selMap=g.dataset.id;renderMap()};g.onclick=go;g.onkeydown=e=>{if(e.key==='Enter')go()}});
+  const f=sup(selMap);
+  if(!f){$('#mapcard').innerHTML='<p class="hint">No suppliers.</p>';return;}
+  const biome=MUNI[f.muni]?MUNI[f.muni][2]:'—';
+  $('#mapcard').innerHTML=`<div class="btns" style="justify-content:space-between"><h3 style="font-size:18px">${esc(f.name)}</h3><span class="pill ${f.st}">${stLabel[f.st]}</span></div>
+   <p class="hint" style="margin:4px 0 12px">${esc(f.muni)}, ${MUNI[f.muni]?MUNI[f.muni][3]:''} · ${biome} · ${f.tier==='Tier-1'?'Sells direct':'Sells via '+COOP.name}</p>
+   <dl class="dl"><div><dt>Owner</dt><dd>${esc(f.owner)}</dd></div><div><dt>Phone</dt><dd class="num">${esc(f.phone)}</dd></div>
+   <div><dt>Coordinates</dt><dd class="mono">${f.lat.toFixed(4)}, ${f.lng.toFixed(4)}</dd></div><div><dt>Area</dt><dd>${fmt(f.area)} ha (${fmt(f.soy)} ha soy)</dd></div></dl>
+   <p style="margin:12px 0">${esc(f.note)}</p>
+   <div class="btns"><a class="btn pri sm" href="${gmaps(f)}" target="_blank" rel="noopener">Satellite view in Google Maps ↗</a><a class="btn sm" href="${gsearch(f)}" target="_blank" rel="noopener">Pin in Google Maps ↗</a>
+   <a class="btn sm" href="https://www.globalforestwatch.org/map/" target="_blank" rel="noopener">Global Forest Watch ↗</a><a class="btn sm" href="#suppliers" id="toprof">Full profile</a></div>
+   <h4 style="margin:16px 0 6px;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">All suppliers</h4>
+   <div class="tw"><table><tbody>${suppliers.map(x=>`<tr class="click ${x.id===selMap?'sel':''}" data-id="${x.id}"><td><span class="dot" style="background:${stColor[x.st]}"></span>${esc(x.name)}</td><td class="hint">${esc(x.muni)}</td></tr>`).join('')}</tbody></table></div>`;
+  $('#toprof').onclick=()=>{selSup=f.id;renderSuppliers()};
+  $$('#mapcard tr[data-id]').forEach(tr=>tr.onclick=()=>{selMap=tr.dataset.id;renderMap()});
+}
+
+/* ================= PRODUCER PORTAL ================= */
+let pSel='S-01', pYear=null;
+function renderPortal(){
+  if(!sup(pSel)&&suppliers[0]) pSel=suppliers[0].id;
+  $('#pfarm').innerHTML=suppliers.map(s=>`<option value="${s.id}" ${s.id===pSel?'selected':''}>${esc(s.name)} · ${esc(s.owner)}</option>`).join('');
+  const s=sup(pSel); if(!s) return;
+  const h=hist[s.id]||{}, yrs=Object.keys(h).map(Number).sort();
+  $('#pgreet').textContent=`Olá, ${s.owner.split(' ')[0]} · ${s.name}`;
+  $('#pto').value=s.tier==='Tier-1'?'LDC receiving silo (direct)':'Coop. Oeste Baiano';
+  if(!yrs.length){
+    $('#pyear').textContent='—';$('#pslider').disabled=true;$('#pyl').innerHTML='';$('#pplaus').innerHTML='';
+    $('#ptiles').innerHTML='<p class="hint" style="grid-column:1/-1">No harvest reports yet. Submit the first report on the right.</p>';$('#pchart').innerHTML='';
+  } else {
+    if(pYear===null||!h[pYear]) pYear=yrs.includes(2026)?2026:yrs[yrs.length-1];
+    const sl=$('#pslider');sl.disabled=false;sl.min=yrs[0];sl.max=yrs[yrs.length-1];sl.step=1;sl.value=pYear;
+    $('#pyl').innerHTML=yrs.map(y=>`<span>${y}</span>`).join('');
+    const c=h[pYear], p=h[pYear-1];
+    $('#pyear').textContent=pYear;
+    const yld=c.prod/c.area, ref=refY(pYear), dev=yld/ref-1, plaus=Math.abs(dev)<=.15;
+    $('#pplaus').innerHTML=plaus?`<span class="pill ok">Yield within regional range (${(yld/ref*100).toFixed(0)}% of reference)</span>`:`<span class="pill bad">Yield ${(yld/ref*100).toFixed(0)}% of regional reference · sent to verification</span>`;
+    const delivered=c.prod*(s.tier==='Tier-1'?.9:.85), pdel=p?p.prod*(s.tier==='Tier-1'?.9:.85):null;
+    const tile=(l,v,u,prev,dp)=>{let ch='<span class="chg flat">— first year on record</span>';
+      if(prev!=null){const d=(v/prev-1)*100;
+        ch=Math.abs(d)<.05?'<span class="chg flat">● 0.0% vs previous year</span>':d>0?`<span class="chg up">▲ +${d.toFixed(1)}% vs ${pYear-1}</span>`:`<span class="chg dn">▼ ${d.toFixed(1)}% vs ${pYear-1}</span>`;}
+      return `<div class="mt"><span class="l">${l}</span><span class="v num">${dp?v.toFixed(dp):fmt(v)} <small style="font-size:13px;color:var(--muted)">${u}</small></span>${ch}</div>`};
+    $('#ptiles').innerHTML=tile('Harvested area',c.area,'ha',p&&p.area)+tile('Production',c.prod,'t',p&&p.prod)+tile('Yield',yld,'t/ha',p&&p.prod/p.area,2)+tile(s.tier==='Tier-1'?'Delivered to LDC':'Delivered to cooperative',delivered,'t',pdel);
+    // chart
+    const W=620,H=210,L=44,B=28,T=14, mx=Math.max(...yrs.map(y=>h[y].prod))*1.15, bw=(W-L-10)/yrs.length;
+    let g=`<line x1="${L}" x2="${W}" y1="${H-B}" y2="${H-B}" stroke="#d9dfd9"/>`;
+    [0,.5,1].forEach(f=>{const y=H-B-f*(H-B-T);g+=`<line x1="${L}" x2="${W}" y1="${y}" y2="${y}" stroke="#eef1ec"/><text x="${L-6}" y="${y+4}" font-size="10.5" text-anchor="end" fill="#5b6862">${fmt(mx*f)}</text>`});
+    yrs.forEach((y,i)=>{const v=h[y].prod,bh=v/mx*(H-B-T),x=L+i*bw+bw*.18,w=bw*.64,pv=h[y-1];
+      const col=y===pYear?(pv?(v>=pv.prod?'var(--ok)':'var(--bad)'):'var(--accent)'):'#c9d3cd';
+      g+=`<g style="cursor:pointer" data-y="${y}"><rect x="${x}" y="${H-B-bh}" width="${w}" height="${bh}" rx="3" fill="${col}"/>
+        <text x="${x+w/2}" y="${H-B-bh-5}" font-size="10.5" text-anchor="middle" fill="${y===pYear?'#17221d':'#5b6862'}" font-weight="${y===pYear?700:400}">${fmt(v)}</text>
+        <text x="${x+w/2}" y="${H-10}" font-size="11" text-anchor="middle" fill="#5b6862" font-weight="${y===pYear?700:400}">${y}${h[y].self?'*':''}</text></g>`});
+    g+=`<text x="${L}" y="10" font-size="10.5" fill="#5b6862">tonnes</text>`;
+    $('#pchart').innerHTML=g;
+    $$('#pchart g[data-y]').forEach(e=>e.onclick=()=>{pYear=+e.dataset.y;renderPortal()});
+  }
+  $('#psubs').innerHTML=subs.filter(x=>x.sid===s.id).slice().reverse().map(x=>`<tr><td class="mono">${x.id}</td><td>${x.season}</td><td class="r num">${x.y.toFixed(2)}</td><td>${x.ok?'<span class="pill ok">Within range</span>':'<span class="pill bad">Sent to verification</span>'}</td></tr>`).join('')||'<tr><td colspan="4" class="hint">No reports yet.</td></tr>';
+}
+$('#pfarm').onchange=()=>{pSel=$('#pfarm').value;pYear=null;$('#preceipt').innerHTML='';renderPortal()};
+$('#pslider').addEventListener('input',()=>{pYear=+$('#pslider').value;renderPortal()});
+$('#pform').addEventListener('submit',e=>{
+  e.preventDefault();
+  const s=sup(pSel), y=+$('#pseason').value, area=+$('#parea').value, prod=+$('#pprod').value;
+  if(!area||!prod){toast('Enter harvested area and production');return;}
+  const over=area>s.soy*1.02, yld=prod/area, ok=Math.abs(yld/refY(y)-1)<=.15&&!over;
+  hist[s.id][y]={area,prod,self:true}; pYear=y;
+  const id=`HR-${String(y).slice(2)}-${s.id.slice(2)}${subs.filter(x=>x.sid===s.id).length+1}`;
+  subs.push({id,sid:s.id,season:y===2027?'2026/27':'2025/26 corr.',y:yld,ok});
+  const nf=$('#pfiles').files.length;
+  $('#preceipt').innerHTML=`<div class="receipt" style="background:${ok?'var(--ok-bg)':'var(--bad-bg)'}"><b>Report ${id} received.</b> Yield ${yld.toFixed(2)} t/ha against a reference of ${refY(y).toFixed(2)} t/ha${over?`. Harvested area is larger than the registered soy area (${fmt(s.soy)} ha)`:''}. ${ok?'Within range, no action needed.':'Outside the expected range, so the verification team will review it before the next delivery.'} ${nf?nf+' document'+(nf>1?'s':'')+' attached.':'No documents attached.'}</div>`;
+  $('#pform').reset(); renderPortal();
+});
+
+/* ================= LAND CHECK (simulated imagery) ================= */
+let landCase='ys';
+const W=720,H=440;
+function rng(seed){return()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646}}
+const P={ysI:[150,120,180,180],ysII:[330,120,175,180],yr:[20,40,118,330],sbF:[540,250,165,150],sb:[540,50,165,350],clear:[606,120,26,15]};
+function texture(c,r,x,y,w,h,base,spots,n,rad){c.fillStyle=base;c.fillRect(x,y,w,h);for(let i=0;i<n;i++){c.fillStyle=spots[Math.floor(r()*spots.length)];c.beginPath();c.arc(x+r()*w,y+r()*h,rad[0]+r()*rad[1],0,7);c.fill();}}
+function field(c,r,x,y,w,h,base,row){c.fillStyle=base;c.fillRect(x,y,w,h);c.strokeStyle=row;c.lineWidth=1;c.globalAlpha=.55;for(let i=y+2;i<y+h;i+=4){c.beginPath();c.moveTo(x,i);c.lineTo(x+w,i+(r()-.5));c.stroke();}c.globalAlpha=1;for(let i=0;i<w*h/220;i++){c.fillStyle='rgba(90,80,50,.15)';c.fillRect(x+r()*w,y+r()*h,2,2);}}
+function scene(after){
+  const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');const r=rng(7);
+  texture(x,r,0,0,W,H,'#4f6236',['#3a4d27','#45582e','#6f7445','#5f6a3c','#2f4222'],9000,[1.5,4]);
+  x.strokeStyle='#263b1f';x.lineWidth=34;x.beginPath();x.moveTo(0,405);x.bezierCurveTo(200,370,420,440,720,395);x.stroke();
+  x.strokeStyle='#4f6a76';x.lineWidth=5;x.stroke();
+  field(x,r,...P.yr,'#b8b27a','#9b9460');field(x,r,...P.ysI,'#a9b56f','#8f9a58');field(x,r,...P.sbF,'#c7ad84','#a88f66');
+  if(after){field(x,r,P.ysII[0]+4,P.ysII[1]+8,P.ysII[2]-10,P.ysII[3]-14,'#cfb48b','#b39670');texture(x,r,...P.clear,'#c6a77e',['#b89a71','#d4b88f'],40,[1,2]);}
+  x.strokeStyle='#d9cfb4';x.lineWidth=2;x.beginPath();x.moveTo(143,0);x.lineTo(143,380);x.moveTo(0,312);x.lineTo(720,318);x.moveTo(520,0);x.lineTo(530,380);x.stroke();
+  return c;
+}
+const scenes={};
+function drawSat(){
+  const cv=$('#sat'),ctx=cv.getContext('2d');
+  if(!scenes.b){scenes.b=scene(false);scenes.a=scene(true);}
+  const split=+$('#split').value, res=+$('#res').value;
+  const comp=document.createElement('canvas');comp.width=W;comp.height=H;const c=comp.getContext('2d');
+  c.drawImage(scenes.b,0,0);c.save();c.beginPath();c.rect(split,0,W-split,H);c.clip();c.drawImage(scenes.a,0,0);c.restore();
+  ctx.clearRect(0,0,W,H);
+  if(res<1){ctx.imageSmoothingEnabled=true;ctx.drawImage(comp,0,0);}
+  else{const blk=res/4,sw=Math.round(W/blk),sh=Math.round(H/blk),sm=document.createElement('canvas');sm.width=sw;sm.height=sh;const s=sm.getContext('2d');s.imageSmoothingEnabled=true;s.drawImage(comp,0,0,sw,sh);ctx.imageSmoothingEnabled=false;ctx.drawImage(sm,0,0,W,H);}
+  ctx.fillStyle='#fff';ctx.fillRect(split-1,0,2,H);
+  ctx.font='600 12px "Public Sans", sans-serif';
+  if($('#lyrcar').checked){
+    const box=(p,l,dash)=>{ctx.setLineDash(dash||[]);ctx.strokeStyle='#ffd84d';ctx.lineWidth=2;ctx.strokeRect(...p);ctx.setLineDash([]);ctx.fillStyle='rgba(10,18,14,.72)';const tw=ctx.measureText(l).width;ctx.fillRect(p[0]+3,p[1]+3,tw+10,18);ctx.fillStyle='#fff';ctx.fillText(l,p[0]+8,p[1]+16);};
+    box(P.ysI,'Fazenda Yunseong · CAR …E21C');box(P.ysII,'Neighbour parcel · CAR …7B04 (2022)',[6,4]);box(P.yr,'Other farm');box(P.sb,'Fazenda Sebastian · CAR …B913');
+  }
+  if($('#lyralert').checked&&split<P.ysII[0]+P.ysII[2]){
+    ctx.strokeStyle='#ff4d3d';ctx.lineWidth=2.5;ctx.setLineDash([5,3]);ctx.strokeRect(P.ysII[0]+4,P.ysII[1]+8,P.ysII[2]-10,P.ysII[3]-14);ctx.setLineDash([]);
+    ctx.fillStyle='#ff4d3d';ctx.fillRect(P.ysII[0]+8,P.ysII[1]+P.ysII[3]-30,150,18);ctx.fillStyle='#fff';ctx.fillText('Alert · 47 ha · Jul 2023',P.ysII[0]+13,P.ysII[1]+P.ysII[3]-17);}
+  if($('#lyralert').checked&&res<1&&split<P.clear[0]+P.clear[2]){
+    ctx.strokeStyle='#ff4d3d';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(P.clear[0]+13,P.clear[1]+7,22,0,7);ctx.stroke();
+    ctx.fillStyle='#ff4d3d';ctx.fillRect(P.clear[0]-60,P.clear[1]+32,128,18);ctx.fillStyle='#fff';ctx.fillText('Alert · 0.6 ha · Mar 2026',P.clear[0]-55,P.clear[1]+45);}
+  ctx.fillStyle='rgba(10,18,14,.72)';ctx.fillRect(W-128,H-34,118,26);ctx.fillStyle='#fff';ctx.fillRect(W-120,H-16,100,4);ctx.fillText('400 m',W-92,H-20);
+  const notes={30:'30 m pixels: the 47 ha conversion is visible, the 0.6 ha clearing on Sebastian disappears into a few pixels.',10:'10 m pixels: public Sentinel-2 data. Clearings under about 1 ha still fall below reliable detection.',0.5:'0.5 m pixels: paid, tasked imagery. Used only on high-risk polygons to keep KPI 4 under $2.50 per tonne.'};
+  $('#resnote').textContent='Simulated imagery. '+notes[res];
+}
+function renderLand(){
+  const ys=landCase==='ys';
+  $('#landpanel').innerHTML=ys?`<h3>Fazenda Yunseong</h3><p class="mono" style="margin:2px 0 10px;color:var(--muted)">S-02 · Formosa do Rio Preto, BA · Tier-2 via ${COOP.name}</p>
+   <div class="check"><span class="ic ok">✓</span><div><b>Own polygon, after 31 Dec 2020</b><p>No change. Cropped since before 2008.</p></div></div>
+   <div class="check"><span class="ic ok">✓</span><div><b>Forest check (EUDR rule)</b><p>Pass. The cleared vegetation on the neighbouring parcel was classed as savanna, which EUDR does not count as forest.</p></div></div>
+   <div class="check"><span class="ic bad">!</span><div><b>Nature check (forest and savanna)</b><p>Fail. The 2022 split created the neighbouring parcel, which converted 47 ha in 2023. Same family, same machinery, same silo, so it is treated as one operation.</p></div></div>
+   <div class="check"><span class="ic bad">!</span><div><b>Cross-check with step 3</b><p>352 t from 50 ha is 7.04 t/ha. That fits harvest from 100 ha sold under the clean parcel.</p></div></div>
+   <div class="btns" style="margin-top:12px"><a class="btn sm" href="#gfw">Loss history →</a><a class="btn sm" href="#balance">Stock check →</a><a class="btn sm" href="#queue">Decision →</a></div>`
+  :`<h3>Fazenda Sebastian</h3><p class="mono" style="margin:2px 0 10px;color:var(--muted)">S-03 · Balsas, MA · Tier-1 direct</p>
+   <div class="check"><span class="ic ok">✓</span><div><b>Public imagery (10–30 m)</b><p>No alert. Switch the imagery to 30 m or 10 m to see why.</p></div></div>
+   <div class="check"><span class="ic warn">?</span><div><b>Commercial 0.5 m imagery</b><p>0.6 ha cleared in the native area in March 2026. Too small for the public alert systems.</p></div></div>
+   <div class="check"><span class="ic warn">?</span><div><b>Checking on site</b><p>Satellites cannot tell a firebreak from conversion. A field visit is needed before the delivery is approved.</p></div></div>
+   <div class="btns" style="margin-top:12px"><button class="btn ok sm" id="fieldbtn">Schedule field visit</button><span class="note" id="fieldstat"></span></div>`;
+  if(!ys) $('#fieldbtn').onclick=()=>{$('#fieldbtn').disabled=true;$('#fieldstat').textContent='Booked for 21 Nov 2026 (2 people). Delivery DLV-26-0415 stays on hold.'};
+  const tl=[['2019','One property','Fazenda Yunseong, 100 ha, one CAR record. Half cropped, half native vegetation.',['#a9b56f','#4f6236'],[[0,100]]],
+   ['2022','Split on paper','Two CAR records: Yunseong (cropped 50 ha) and a neighbouring parcel (native 50 ha) registered to a relative.',['#a9b56f','#4f6236'],[[0,50],[50,50]]],
+   ['2023','Conversion','47 ha of the neighbouring parcel cleared. Legal under EUDR because savanna is not "forest".',['#a9b56f','#cfb48b'],[[0,50],[50,50]]],
+   ['2026','Laundering signal','Yunseong alone declares 352 t, about twice what 50 ha can produce.',['#a9b56f','#cfb48b'],[[0,50],[50,50]]]];
+  $('#timeline').innerHTML=tl.map(([y,t,d,c,bx],i)=>`<div class="t"><b>${y} · ${t}</b><svg viewBox="-2 -2 104 44"><rect x="0" y="0" width="50" height="40" fill="${c[0]}"/><rect x="50" y="0" width="50" height="40" fill="${c[1]}"/>
+   ${bx.map(([x,w])=>`<rect x="${x}" y="0" width="${w}" height="40" fill="none" stroke="#e0b100" stroke-width="1.6" ${i>0&&x===50?'stroke-dasharray="3 2"':''}/>`).join('')}
+   ${i===3?'<text x="25" y="25" font-size="9" text-anchor="middle" fill="#7d231c" font-weight="700">352 t</text>':''}</svg>${d}</div>`).join('');
+}
+function syncCase(){$$('#caseseg button').forEach(b=>b.classList.toggle('on',b.dataset.c===landCase));
+  if(landCase==='sb'){$('#res').value='0.5';$('#split').value=520;}else{$('#res').value='10';$('#split').value=360;}renderLand();drawSat();}
+$$('#caseseg button').forEach(b=>b.onclick=()=>{landCase=b.dataset.c;syncCase()});
+['split','res','lyrcar','lyralert'].forEach(id=>$('#'+id).addEventListener('input',drawSat));
+
+/* ================= GFW-STYLE MONITOR ================= */
+const GC=6,GW=120,GH=74;
+const loss=new Int16Array(GW*GH), tc=new Uint8Array(GW*GH);
+const GP={own:[40,22,24,23],nb:[64,22,24,23]};
+const inR=(x,y,R)=>x>=R[0]&&x<R[0]+R[2]&&y>=R[1]&&y<R[1]+R[3];
+(function build(){
+  const r=rng(11);
+  for(let i=0;i<GW*GH;i++){const x=i%GW,y=Math.floor(i/GW);tc[i]=1; if(y>=66&&y<=68)tc[i]=2; else if(r()<.06)tc[i]=0;}
+  // open savanna patches without tree cover
+  for(let k=0;k<14;k++){const cx=r()*GW,cy=r()*60,rad=2+r()*4;for(let y=0;y<GH;y++)for(let x=0;x<GW;x++)if((x-cx)**2+(y-cy)**2<rad*rad&&tc[y*GW+x]!==2&&!inR(x,y,GP.nb))tc[y*GW+x]=0;}
+  const ev=[[3,6,30,46,2003],[40,22,24,23,2006],[92,4,26,30,2011],[8,54,44,8,2017],[64,22,24,23,2023],[96,44,8,6,2021],[30,40,3,2,2025],[110,60,3,2,2024],[76,52,3,3,2025],[18,30,6,5,2009],[60,4,10,8,2014]];
+  ev.forEach(([x0,y0,w,h,yr])=>{for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++){if(x>=GW||y>=GH)continue;const i=y*GW+x;if(tc[i]!==1||loss[i])continue;
+    const edge=Math.min(x-x0,y-y0,x0+w-1-x,y0+h-1-y);if(edge<1&&yr!==2023&&r()<.45)continue;loss[i]=yr;}});
+  for(let k=0;k<70;k++){const i=Math.floor(r()*GW*64);if(tc[i]===1&&!loss[i])loss[i]=2001+Math.floor(r()*25);}
+})();
+const lossCol=y=>{const t=(y-2001)/24;const a=[255,194,212],b=[242,86,156],c=[192,0,109];const m=t<.5?[a,b,t*2]:[b,c,(t-.5)*2];return `rgb(${m[0].map((v,i)=>Math.round(v+(m[1][i]-v)*m[2])).join(',')})`;};
+let gSel='own', gFrom=2001, gTo=2025, gTimer=null;
+const gfwBase=(()=>{const c=document.createElement('canvas');c.width=GW*GC;c.height=GH*GC;const x=c.getContext('2d');const r=rng(5);
+  for(let i=0;i<GW*GH;i++){const cx=(i%GW)*GC,cy=Math.floor(i/GW)*GC;x.fillStyle=tc[i]===2?'#5c7f8c':tc[i]===1?['#1f4a2c','#245232','#1b4327'][Math.floor(r()*3)]:['#cbbf8e','#c4b783'][Math.floor(r()*2)];x.fillRect(cx,cy,GC,GC);}return c;})();
+function drawGfw(){
+  const c=$('#gfwc').getContext('2d');c.drawImage(gfwBase,0,0);
+  for(let i=0;i<GW*GH;i++){const y=loss[i];if(!y)continue;const cx=(i%GW)*GC,cy=Math.floor(i/GW)*GC;
+    if(y<gFrom){c.fillStyle='#cbbf8e';c.fillRect(cx,cy,GC,GC);} else if(y<=gTo){c.fillStyle=lossCol(y);c.fillRect(cx,cy,GC,GC);} }
+  if($('#gcar').checked){c.font='600 12px "Public Sans", sans-serif';
+    [[GP.own,'Fazenda Yunseong',[]],[GP.nb,'Neighbour parcel (split 2022)',[6,4]]].forEach(([R,l,d])=>{c.setLineDash(d);c.strokeStyle='#ffd84d';c.lineWidth=2.5;c.strokeRect(R[0]*GC,R[1]*GC,R[2]*GC,R[3]*GC);c.setLineDash([]);
+      c.fillStyle='rgba(10,18,14,.75)';const tw=c.measureText(l).width;c.fillRect(R[0]*GC+2,R[1]*GC-22,tw+10,18);c.fillStyle='#fff';c.fillText(l,R[0]*GC+7,R[1]*GC-9);});}
+  c.fillStyle='rgba(10,18,14,.72)';c.fillRect(720-128,444-34,118,26);c.fillStyle='#fff';c.fillRect(720-120,444-16,100,4);c.font='600 12px "Public Sans", sans-serif';c.fillText('500 m',720-92,444-20);
+  $('#gfwtag').textContent=`Tree cover loss ${gFrom}–${gTo}`;
+  // stats
+  const per={};for(let y=2001;y<=2025;y++)per[y]=0;
+  for(let i=0;i<GW*GH;i++){const y=loss[i];if(!y)continue;const x=i%GW,yy=Math.floor(i/GW);
+    const ok=gSel==='all'||inR(x,yy,GP.own)||(gSel==='op'&&inR(x,yy,GP.nb));if(ok)per[y]+=.09;} /* 30 m pixel = 0.09 ha */
+  const tot=Object.values(per).reduce((a,b)=>a+b,0), post=Object.entries(per).filter(([y])=>y>2020).reduce((a,[,v])=>a+v,0), win=Object.entries(per).filter(([y])=>y>=gFrom&&y<=gTo).reduce((a,[,v])=>a+v,0);
+  $('#gstats').innerHTML=`<div><b class="num">${fmt(tot)} ha</b><span>Loss 2001–2025</span></div><div><b class="num" style="color:${post>1?'var(--gfw)':'var(--ok)'}">${fmt(post)} ha</b><span>After EUDR cut-off</span></div><div><b class="num">${fmt(win)} ha</b><span>In selected years</span></div>`;
+  const Wc=520,Hc=210,L=40,B=26,T=12,mx=Math.max(5,...Object.values(per))*1.15,bw=(Wc-L-6)/25;
+  let g=`<line x1="${L}" x2="${Wc}" y1="${Hc-B}" y2="${Hc-B}" stroke="#d9dfd9"/>`;
+  [0,.5,1].forEach(f=>{const y=Hc-B-f*(Hc-B-T);g+=`<line x1="${L}" x2="${Wc}" y1="${y}" y2="${y}" stroke="#eef1ec"/><text x="${L-5}" y="${y+4}" font-size="10" text-anchor="end" fill="#5b6862">${fmt(mx*f)}</text>`});
+  const cut=L+20*bw;g+=`<rect x="${cut}" y="${T}" width="${Wc-cut}" height="${Hc-B-T}" fill="#fbe9f1"/><line x1="${cut}" x2="${cut}" y1="${T}" y2="${Hc-B}" stroke="var(--gfw)" stroke-dasharray="3 3"/><text x="${cut+4}" y="${T+11}" font-size="10.5" fill="var(--gfw)" font-weight="700">EUDR cut-off</text>`;
+  for(let y=2001;y<=2025;y++){const v=per[y],bh=v/mx*(Hc-B-T),x=L+(y-2001)*bw+1,act=y>=gFrom&&y<=gTo;
+    g+=`<rect x="${x}" y="${Hc-B-bh}" width="${bw-2}" height="${bh}" fill="${act?lossCol(y):'#dfe3df'}"/>`;
+    if(y%4===1||y===2025)g+=`<text x="${x+bw/2}" y="${Hc-9}" font-size="10" text-anchor="middle" fill="#5b6862">${y}</text>`;}
+  g+=`<text x="${L}" y="9" font-size="10" fill="#5b6862">hectares lost per year</text>`;
+  $('#gchart').innerHTML=g;
+  $('#gmsg').innerHTML={own:'The Yunseong polygon itself shows <b>no loss after 2020</b>. Checking only this polygon, it passes.',op:`Add the parcel split off in 2022 and the picture changes: <b>${fmt(per[2023])} ha lost in 2023</b>, right next to the field that now reports double yields.`,all:'The wider landscape shows the frontier moving year by year. Pink pixels after the dashed line count against EUDR if they fall inside a supplier\'s operation.'}[gSel];
+}
+for(let y=2001;y<=2025;y++){$('#gfrom').insertAdjacentHTML('beforeend',`<option ${y===2001?'selected':''}>${y}</option>`);$('#gto').insertAdjacentHTML('beforeend',`<option ${y===2025?'selected':''}>${y}</option>`);}
+$('#gfrom').onchange=()=>{gFrom=+$('#gfrom').value;if(gFrom>gTo){gTo=gFrom;$('#gto').value=gTo;}drawGfw()};
+$('#gto').onchange=()=>{gTo=+$('#gto').value;if(gTo<gFrom){gFrom=gTo;$('#gfrom').value=gFrom;}drawGfw()};
+$('#gcar').onchange=drawGfw;
+$$('#gsel button').forEach(b=>b.onclick=()=>{gSel=b.dataset.s;$$('#gsel button').forEach(x=>x.classList.toggle('on',x===b));drawGfw()});
+$('#gplay').onclick=()=>{
+  if(gTimer){clearInterval(gTimer);gTimer=null;$('#gplay').textContent='▶ Play 2001–2025';return;}
+  gFrom=2001;$('#gfrom').value=2001;gTo=2001;$('#gplay').textContent='■ Stop';
+  gTimer=setInterval(()=>{$('#gto').value=gTo;drawGfw();if(gTo>=2025){clearInterval(gTimer);gTimer=null;$('#gplay').textContent='▶ Play 2001–2025';}else gTo++;},280);
+};
+$('#galerts').innerHTML=[
+ ['2026-10-03','GLAD-S2 (optical)','High','0.4 ha','Outside supplier polygons, 1.2 km from Fazenda Yunseong','Monitor'],
+ ['2026-03-14','Commercial 0.5 m','Confirmed','0.6 ha','Inside Fazenda Sebastian','Field visit 21 Nov'],
+ ['2025-08-22','RADD (radar)','Nominal','0.2 ha','Neighbour parcel of Fazenda Yunseong','Linked to case'],
+ ['2023-07-09','GLAD-L (Landsat)','High','47 ha','Neighbour parcel of Fazenda Yunseong','Case opened']
+].map(r=>`<tr><td class="num">${r[0]}</td><td>${r[1]}</td><td><span class="pill ${r[2]==='High'||r[2]==='Confirmed'?'bad':'warn'}">${r[2]}</span></td><td class="r num">${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td></tr>`).join('');
+
+/* ================= MASS BALANCE ================= */
+const REF=3.80,TOL=.15;
+function renderBalance(){
+  const mem=suppliers.filter(s=>s.tier==='Tier-2'&&hist[s.id]&&hist[s.id][2026]);
+  const prod=mem.reduce((a,s)=>a+hist[s.id][2026].prod,0);
+  const inn=[['Opening stock (1 Feb)',1100],['Production received from members',prod],['Purchases from non-members',700]];
+  const si=inn.reduce((a,x)=>a+x[1],0), closing=1105, losses=170, deliv=si+428-closing-losses;
+  const out=[['Deliveries to LDC',deliv],['Closing stock (31 Jul)',closing],['Recorded losses (drying, 2.6%)',losses]];
+  const so=out.reduce((a,x)=>a+x[1],0), gap=so-si;
+  const side=(t,rows,tot)=>`<b style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">${t}</b>${rows.map(([l,v])=>`<div class="row"><span>${l}</span><span class="num">${fmt(v)} t</span></div>`).join('')}<div class="row tot"><span>Total</span><span class="num">${fmt(tot)} t</span></div>`;
+  $('#inside').innerHTML=side('Came in (left side)',inn,si);$('#outside').innerHTML=side('Went out or still there (right side)',out,so);
+  const ys=hist['S-02']&&hist['S-02'][2026];
+  $('#gapmsg').innerHTML=`<b>${fmt(gap)} t left the cooperative without a recorded source.</b> That is ${(gap/so*100).toFixed(1)}% of out-flow, above the 1% tolerance.${ys?` The excess yield on Fazenda Yunseong (${fmt(ys.prod-50*REF*(1+TOL))} t above the tolerance band) explains part of it.`:''} Deliveries containing these lots are held until records arrive.`;
+  $('#reqrec').onclick=()=>{$('#reqrec').disabled=true;$('#reqstat').textContent='Request sent 18 Nov 2026: purchase invoices, scale tickets and member delivery logs for Feb–Jul. Due in 10 working days.'};
+  const lo=REF*(1-TOL),hi=REF*(1+TOL),sc=8;
+  $('#yieldrows').innerHTML=mem.map(s=>{const h=hist[s.id][2026],y=h.prod/h.area,pct=y/REF*100,bad=y>hi||y<lo;
+    return `<tr><td><b>${esc(s.name)}</b><span class="sub">${esc(s.muni)}</span></td><td class="r num">${fmt(h.area)}</td><td class="r num">${fmt(h.prod)}</td><td class="r num">${y.toFixed(2)}</td>
+     <td><svg viewBox="0 0 200 18" style="width:100%;height:18px" aria-label="${pct.toFixed(0)}% of reference"><rect x="0" y="6" width="200" height="6" rx="3" fill="#eceeeb"/>
+      <rect x="${lo/sc*200}" y="3" width="${(hi-lo)/sc*200}" height="12" rx="2" fill="var(--ok-bg)" stroke="var(--ok)" stroke-width=".8"/><line x1="${REF/sc*200}" x2="${REF/sc*200}" y1="2" y2="16" stroke="var(--ok)"/>
+      <circle cx="${Math.min(y,sc)/sc*200}" cy="9" r="5" fill="${bad?'var(--bad)':'var(--ink)'}"/></svg></td>
+     <td>${bad?`<span class="pill bad">${pct.toFixed(0)}% · investigate</span>`:`<span class="pill ok">${pct.toFixed(0)}% · plausible</span>`}</td></tr>`}).join('');
+}
+
+/* ================= QUEUE + DDS ================= */
+let selDlv='DLV-26-0412';
+const stPill={pending:['mut','Awaiting decision'],held:['warn','Held'],approved:['ok','Approved'],rejected:['bad','Rejected']};
+const ddsRef=d=>`26NL-ILLUS-${d.id.slice(-4)}-${(+d.id.slice(-4)*7919%9000+1000)}`;
+function renderQueue(){
+  $('#queuecount').textContent=`${dlv.filter(d=>d.st==='pending').length} awaiting decision`;
+  $('#dlvrows').innerHTML=dlv.map(d=>`<tr class="click ${d.id===selDlv?'sel':''}" data-d="${d.id}" tabindex="0"><td class="mono">${d.id}</td><td>${d.sup}<span class="sub">${d.lots}</span></td><td class="r num">${fmt(d.t)}</td><td><span class="pill ${stPill[d.st][0]}">${stPill[d.st][1]}</span></td></tr>`).join('');
+  $$('#dlvrows tr').forEach(tr=>{const go=()=>{selDlv=tr.dataset.d;renderQueue()};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go()}});
+  const d=dlv.find(x=>x.id===selDlv);
+  const rec={hold:['warn','Recommended: hold'],approve:['ok','Recommended: approve'],reject:['bad','Recommended: reject']}[d.rec];
+  const silo={pending:'Waiting bin Wait-2 · kept separate, not mixed',held:'Waiting bin Wait-2 · kept separate, not mixed',approved:'EU-ready bin EU-3 · cleared for EU-bound crushing',rejected:'Removed from EU flow · logged for leakage tracking'}[d.st];
+  const pay={pending:'Advance paid (90%). Final 10% waits for the decision.',held:'Final 10% withheld under contract clause 7.2 until checks finish.',approved:'Final 10% released to the supplier.',rejected:'Final 10% not paid. Supplier notified with the evidence.'}[d.st];
+  const dds=d.st==='approved'?`DDS ${ddsRef(d)} ready for EU TRACES`:'No DDS until approved';
+  $('#dlvpanel').innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><h3 class="mono" style="font-size:15px">${d.id}</h3><p class="hint">${d.sup} · ${fmt(d.t)} t · ${d.lots}</p></div><span class="pill ${rec[0]}">${rec[1]}</span></div>
+   <div style="margin-top:8px">${d.checks.map(([s,t,p])=>`<div class="check"><span class="ic ${s}">${s==='ok'?'✓':s==='mut'?'–':s==='warn'?'?':'!'}</span><div><b>${t}</b>${p?`<p>${p}</p>`:''}</div></div>`).join('')}</div>
+   <div class="flow3"><div><b>Product flow</b>${silo}<br><a href="#storage">Storage →</a></div><div><b>Information flow</b>${dds}<br><a href="#tracking" id="q2t">Tracking →</a></div><div><b>Finance flow</b>${pay}<br><a href="#payments">Payments →</a></div></div>
+   <div class="btns" style="margin-top:14px"><button class="btn ok" data-a="approved" ${d.st==='approved'||d.st==='rejected'?'disabled':''}>Approve</button>
+   <button class="btn warn" data-a="held" ${d.st!=='pending'?'disabled':''}>Hold for checks</button>
+   <button class="btn bad" data-a="rejected" ${d.st==='approved'||d.st==='rejected'?'disabled':''}>Reject</button></div>`;
+  $('#q2t').onclick=()=>{selTrk=d.id;selLot=d.id};
+  $$('#dlvpanel [data-a]').forEach(b=>b.onclick=()=>{d.st=b.dataset.a;
+    const ts=new Date(Date.UTC(2026,10,18,18,30+logLines.length)).toISOString().slice(0,16).replace('T',' ');
+    logLines.unshift(`${ts}  ${d.id}  ${d.st.toUpperCase()}  verification team (you)`);
+    toast(`${d.id} ${stPill[d.st][1].toLowerCase()}`);renderAll();});
+}
+function renderDds(){
+  const ap=dlv.filter(d=>d.st==='approved');
+  $('#ddsrows').innerHTML=ap.map((d,i)=>`<tr><td class="mono">${ddsRef(d)}</td><td class="mono">${d.id}</td><td>Soya beans · HS 1201</td><td class="r num">${fmt(d.t)}</td>
+    <td>${d.farms.length} farm polygon${d.farms.length>1?'s':''} attached</td><td>${i===ap.length-1&&d.id==='DLV-26-0402'?'<span class="pill ok">Submitted to TRACES</span>':'<span class="pill info">Ready to submit</span>'}</td></tr>`).join('')||'<tr><td colspan="6" class="hint">No approved deliveries yet.</td></tr>';
+  $('#log').textContent=logLines.join('\n');
+}
+
+
+/* ================= FLOWS ================= */
+const TRK={ 'DLV-26-0412':{recv:1078.1,date:'14 Nov'},'DLV-26-0415':{recv:1646.7,date:'15 Nov'},'DLV-26-0418':{recv:309.4,date:'16 Nov',missing:65},
+  'DLV-26-0420':{recv:431.6,date:'17 Nov'},'DLV-26-0409':{recv:2395.2,date:'13 Nov'},'DLV-26-0402':{recv:898.6,date:'10 Nov'},'DLV-26-0398':{recv:640.3,date:'8 Nov',missing:640}};
+let selTrk='DLV-26-0420';
+function legs(d){const n=Math.ceil(d.t/37.5),r=rng(+d.id.slice(-4)),out=[];let left=d.t,lr=TRK[d.id].recv;
+  for(let i=0;i<n;i++){const sent=i===n-1?left:Math.round((d.t/n)*10)/10;left=Math.round((left-sent)*10)/10;out.push({tk:'TK-'+d.id.slice(-4)+'-'+String(i+1).padStart(2,'0'),plate:'Q'+'BCDFGJ'[Math.floor(r()*6)]+'A-'+(1000+Math.floor(r()*8999)),sent});}
+  const ratio=lr/d.t; out.forEach((l,i)=>{l.recv=Math.round(l.sent*(d.id==='DLV-26-0420'?(i===3||i===7?1+9.8/l.sent:1):ratio)*10)/10;});
+  return out;}
+function renderTracking(){
+  const rows=dlv.map(d=>{const t=TRK[d.id];if(!t)return null;const diff=(t.recv/d.t-1)*100;return {d,t,diff,ok:Math.abs(diff)<=.5,idok:!t.missing}}).filter(Boolean);
+  const matched=rows.filter(r=>r.ok&&r.idok).length, sent=rows.reduce((a,r)=>a+r.d.t,0), unexpl=rows.filter(r=>!r.ok&&r.t.recv>r.d.t).reduce((a,r)=>a+(r.t.recv-r.d.t),0), noid=rows.reduce((a,r)=>a+(r.t.missing||0),0);
+  $('#trktiles').innerHTML=[[`${matched} of ${rows.length}`,'deliveries fully matched','ok'],[`${fmt(sent)} t`,'sent on supplier tickets','mut'],[`${unexpl.toFixed(1)} t`,'received without paperwork','bad'],[`${fmt(noid)} t`,'without farm IDs on tickets','warn']]
+    .map(([v,l,c])=>`<div class="card"><div style="font-size:26px;font-weight:700;color:${c==='bad'?'var(--bad)':c==='warn'?'var(--warn)':'var(--ink)'}" class="num">${v}</div><div class="hint">${l}</div></div>`).join('');
+  $('#trkrows').innerHTML=rows.map(({d,t,diff,ok,idok})=>`<tr class="click ${d.id===selTrk?'sel':''}" data-d="${d.id}" tabindex="0"><td class="mono">${d.id}<span class="sub">${t.date}</span></td><td>${d.sup}</td><td class="r num">${d.t.toFixed(1)}</td><td class="r num">${t.recv.toFixed(1)}</td>
+    <td class="r"><span class="pill ${ok?'ok':'bad'}">${diff>=0?'+':''}${diff.toFixed(1)}%</span></td><td>${idok?'<span class="pill ok">Linked</span>':`<span class="pill bad">${fmt(t.missing)} t missing</span>`}</td></tr>`).join('');
+  $$('#trkrows tr').forEach(tr=>{const go=()=>{selTrk=tr.dataset.d;renderTracking()};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go()}});
+  const d=dlv.find(x=>x.id===selTrk), t=TRK[d.id], diff=(t.recv/d.t-1)*100, wok=Math.abs(diff)<=.5, idok=!t.missing;
+  const fids=d.farms.map(id=>{const s=sup(id);return s?`${s.id} ${s.name.replace('Fazenda ','')}`:id}).join(', ')||'none';
+  const decided=d.st==='approved'||d.st==='rejected';
+  const sp=[['1','Farm / coop out','Scale ticket + farm IDs',idok?'done':'bad'],['2','NF-e issued','Electronic invoice','done'],['3','In transit',`${legs(d).length} trucks`,'done'],
+    ['4','LDC truck scale',`${t.recv.toFixed(1)} t received`,wok?'done':'bad'],['5','Bin assigned',d.st==='approved'?'EU-3':d.st==='rejected'?'Non-EU':'Holding','done'],['6','DDS / TRACES',d.st==='approved'?'Ready':'Waits for approval',d.st==='approved'?'done':'']];
+  const lg=legs(d);
+  $('#trkpanel').innerHTML=`<div class="btns" style="justify-content:space-between"><h3 class="mono" style="font-size:15px">${d.id}</h3><span class="pill ${wok&&idok?'ok':'bad'}">${wok&&idok?'Information chain complete':'Information chain broken'}</span></div>
+   <p class="hint" style="margin:2px 0 10px">${d.sup} · ${d.lots}</p>
+   <div class="scan">${sp.map(([n,b,x,c])=>`<div class="sp ${c}"><span class="b">${c==='bad'?'!':n}</span><b>${b}</b><span>${x}</span></div>`).join('')}</div>
+   <h4 style="margin:14px 0 6px;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">ID chain</h4>
+   <div class="idchain"><span class="k ${idok?'':'miss'}"><small>Farm IDs</small>${esc(fids)}${t.missing&&d.farms.length?' + '+t.missing+' t unlinked':''}</span><span class="ar">→</span>
+    <span class="k"><small>Contract</small>LDC-BR-SOY-26${d.id.slice(-2)}</span><span class="ar">→</span><span class="k"><small>Invoice (NF-e)</small>51-2611-…${d.id.slice(-4)}</span><span class="ar">→</span>
+    <span class="k"><small>Tickets</small>${lg.length} trucks</span><span class="ar">→</span><span class="k ${wok?'':'miss'}"><small>Truck scale</small>${t.recv.toFixed(1)} t</span><span class="ar">→</span><span class="k"><small>DDS</small>${d.st==='approved'?ddsRef(d):'—'}</span></div>
+   ${!wok?`<div class="gap">Received ${(t.recv-d.t).toFixed(1)} t more than the supplier tickets show. Extra soy may have been added on the way. The delivery is held and the cooperative is asked to explain.</div>`:''}
+   ${t.missing?`<div class="gap">${fmt(t.missing)} t on this delivery has no farm ID on its tickets, so it cannot be traced to a polygon.</div>`:''}
+   <h4 style="margin:14px 0 6px;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Truck legs</h4>
+   <div class="tw" style="max-height:220px;overflow:auto"><table><thead><tr><th>Ticket</th><th>Truck</th><th class="r">Sent</th><th class="r">Received</th><th class="r">Diff.</th></tr></thead><tbody>
+   ${lg.map(l=>{const df=l.recv-l.sent;return `<tr><td class="mono">${l.tk}</td><td class="mono">${l.plate}</td><td class="r num">${l.sent.toFixed(1)}</td><td class="r num">${l.recv.toFixed(1)}</td><td class="r num" style="color:${Math.abs(df)>.5?'var(--bad)':'var(--muted)'};font-weight:${Math.abs(df)>.5?700:400}">${df>=0?'+':''}${df.toFixed(1)}</td></tr>`}).join('')}</tbody></table></div>
+   <div class="btns" style="margin-top:10px"><a class="btn sm" href="#queue" id="trk2q">Open in delivery queue →</a></div>`;
+  $('#trk2q').onclick=()=>{selDlv=d.id};
+}
+
+const BINS=[{id:'Wait-1',k:'h',name:'Waiting for checks · direct farms',cap:5000},{id:'Wait-2',k:'h',name:'Waiting for checks · cooperative',cap:3000},
+ {id:'EU-1',k:'a',name:'Approved for EU',cap:6000,base:4850},{id:'EU-2',k:'a',name:'Approved for EU',cap:6000,base:5200},{id:'EU-3',k:'a',name:'Approved for EU · today',cap:6000,base:0},
+ {id:'Non-EU',k:'n',name:'Rejected · not for EU',cap:2000,base:0}];
+const binOf=d=>d.st==='approved'?'EU-3':d.st==='rejected'?'Non-EU':(d.sup.startsWith('Coop')?'Wait-2':'Wait-1');
+let selLot='DLV-26-0412';
+function renderStorage(){
+  $('#bins').innerHTML=BINS.map(b=>{const lots=dlv.filter(d=>binOf(d)===b.id),used=(b.base||0)+lots.reduce((a,d)=>a+d.t,0),pct=Math.min(100,used/b.cap*100);
+    const col={h:'var(--warn)',a:'var(--ok)',n:'var(--bad)'}[b.k];
+    return `<div class="binc ${b.k}"><div class="btns" style="justify-content:space-between"><b class="mono" style="font-size:15px">${b.id}</b><span class="pill ${b.k==='h'?'warn':b.k==='a'?'ok':'bad'}">${b.k==='h'?'Checks running':b.k==='a'?'EU eligible':'Not for EU'}</span></div>
+     <span class="hint">${b.name}</span><div class="fill"><i style="width:${pct}%;background:${col}"></i></div><span class="note num">${fmt(used)} of ${fmt(b.cap)} t</span>
+     <div class="lots">${b.base?`<span class="lot" style="cursor:default">earlier lots ${fmt(b.base)} t</span>`:''}${lots.map(d=>`<span class="lot ${d.id===selLot?'on':''}" data-d="${d.id}" tabindex="0">${d.id.slice(4)} · ${fmt(d.t)} t</span>`).join('')}</div></div>`}).join('');
+  $$('#bins .lot[data-d]').forEach(e=>{const go=()=>{selLot=e.dataset.d;renderStorage()};e.onclick=go;e.onkeydown=k=>{if(k.key==='Enter')go()}});
+  const d=dlv.find(x=>x.id===selLot)||dlv[0],b=binOf(d);
+  $('#lotpanel').innerHTML=`<h3>Lot <span class="mono">${d.id}</span></h3><p class="hint" style="margin:2px 0 10px">${d.sup} · ${fmt(d.t)} t · ${d.lots}</p>
+   <div class="check"><span class="ic ok">✓</span><div><b>Received</b><p>Weighed in at the LDC truck scale and kept as one lot.</p></div></div>
+   <div class="check"><span class="ic ${b.startsWith('Wait')?'warn':'ok'}">${b.startsWith('Wait')?'…':'✓'}</span><div><b>Now in ${b}</b><p>${b.startsWith('Wait')?'Waiting for the decision. Cannot be mixed with other soy.':b==='Non-EU'?'Removed from the EU flow. Logged so the volume is not re-sold into the EU later.':'Approved. May be mixed with other approved lots for EU-bound crushing.'}</p></div></div>
+   <div class="check"><span class="ic ${d.st==='approved'?'ok':'mut'}">${d.st==='approved'?'✓':'–'}</span><div><b>Next step</b><p>${d.st==='approved'?'Crushing line 2, scheduled 20 Nov.':d.st==='rejected'?'Sold to non-EU buyers with its full history.':'Decision in the delivery queue.'}</p></div></div>
+   <div class="btns" style="margin-top:10px"><a class="btn sm" href="#queue" id="lot2q">Open in delivery queue →</a></div>`;
+  $('#lot2q').onclick=()=>{selDlv=d.id};
+  const opts=BINS.map(b=>`<option value="${b.id}">${b.id} · ${b.name}</option>`).join('');
+  const f=$('#mixfrom').value||'Wait-2',t=$('#mixto').value||'EU-1';$('#mixfrom').innerHTML=opts;$('#mixto').innerHTML=opts;$('#mixfrom').value=f;$('#mixto').value=t;
+}
+$('#mixbtn').onclick=()=>{const f=BINS.find(b=>b.id===$('#mixfrom').value),t=BINS.find(b=>b.id===$('#mixto').value);let ok,msg;
+  if(f.id===t.id){ok=false;msg='Choose two different bins.';}
+  else if(f.k==='h'&&t.k==='a'){ok=false;msg=`Blocked. ${f.id} holds lots whose checks are not finished. Moving them into ${t.id} would mix unchecked soy into EU-bound stock.`;}
+  else if(f.k==='n'&&t.k!=='n'){ok=false;msg=`Blocked. ${f.id} holds rejected lots. They can never re-enter the EU flow.`;}
+  else if(f.k==='a'&&t.k==='a'){ok=true;msg=`Allowed. Both bins hold approved, EU-eligible soy. The move is logged against each lot ID.`;}
+  else if(t.k==='n'){ok=true;msg=`Allowed, but the soy loses EU eligibility and is logged as non-EU volume.`;}
+  else {ok=false;msg='Blocked. Lots in Wait bins stay where they are until a decision is made.';}
+  $('#mixres').innerHTML=`<div class="receipt" style="background:${ok?'var(--ok-bg)':'var(--bad-bg)'}"><b>${ok?'✓':'✕'}</b> ${msg}</div>`;};
+
+const PRICE=420;
+const COSTCAT=[['Satellite & imagery licences','#2d5f9a',.237],['Verification team','#1d5c45',.336],['Field visits','#7fae5c',.119],['Segregation storage','#b0700a',.176],['Supplier support & training','#c58a5a',.084],['Platform & integration','#8a96a0',.048]];
+const COSTVOL=[60000,75000,90000,105000,115000,120000];
+function renderPayments(){
+  const rows=dlv.map(d=>{const v=d.t*PRICE,st={pending:['mut','Waiting for decision'],held:['warn','Withheld · clause 7.2'],approved:['ok','Released'],rejected:['bad','Not paid · evidence sent']}[d.st];return {d,v,st}});
+  const rel=rows.filter(r=>r.d.st==='approved').reduce((a,r)=>a+r.v*.1,0), wh=rows.filter(r=>r.d.st==='held'||r.d.st==='pending').reduce((a,r)=>a+r.v*.1,0), np=rows.filter(r=>r.d.st==='rejected').reduce((a,r)=>a+r.v*.1,0);
+  const k4=kpis[3].s[5];
+  $('#paytiles').innerHTML=[[`$${fmt(rows.reduce((a,r)=>a+r.v*.9,0))}`,'Advances paid (90%)','ink'],[`$${fmt(rel)}`,'Final payments released','ok'],[`$${fmt(wh)}`,'Final payments on hold','warn'],[`$${k4.toFixed(2)}/t`,'Verification cost, month 6','ink']]
+    .map(([v,l,c])=>`<div class="card"><div class="num" style="font-size:26px;font-weight:700;color:${c==='ok'?'var(--ok)':c==='warn'?'var(--warn)':'var(--ink)'}">${v}</div><div class="hint">${l}</div></div>`).join('');
+  $('#payrows').innerHTML=rows.map(({d,v,st})=>`<tr><td class="mono">${d.id}</td><td>${d.sup}</td><td class="r num">$${fmt(v)}</td><td class="r num">$${fmt(v*.9)}</td><td class="r num">$${fmt(v*.1)}</td><td><span class="pill ${st[0]}">${st[1]}</span></td></tr>`).join('');
+  // chart
+  const W=620,H=240,L=48,B=30,T=16,mx=3,bw=(W-L-10)/6;
+  let g='';[0,1,2,2.5,3].forEach(v=>{const y=H-B-v/mx*(H-B-T);g+=`<line x1="${L}" x2="${W}" y1="${y}" y2="${y}" stroke="${v===2.5?'var(--bad)':'#eef1ec'}" ${v===2.5?'stroke-dasharray="4 3"':''}/><text x="${L-6}" y="${y+4}" font-size="10.5" text-anchor="end" fill="${v===2.5?'var(--bad)':'#5b6862'}">$${v.toFixed(2)}</text>`});
+  g+=`<text x="${W-4}" y="${H-B-2.5/mx*(H-B-T)-5}" font-size="10.5" text-anchor="end" fill="var(--bad)">ceiling $2.50/t</text>`;
+  kpis[3].s.forEach((v,i)=>{let y0=H-B;const x=L+i*bw+bw*.2,w=bw*.6;COSTCAT.forEach(([n,c,sh])=>{const h=v*sh/mx*(H-B-T);g+=`<rect x="${x}" y="${y0-h}" width="${w}" height="${h}" fill="${c}"/>`;y0-=h;});
+    g+=`<text x="${x+w/2}" y="${y0-5}" font-size="11" text-anchor="middle" font-weight="700" fill="#17221d">$${v.toFixed(2)}</text><text x="${x+w/2}" y="${H-10}" font-size="11" text-anchor="middle" fill="#5b6862">Month ${i+1}</text>`;});
+  $('#costchart').innerHTML=g;
+  $('#costleg').innerHTML=COSTCAT.map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join('');
+  const tot=k4*COSTVOL[5];
+  $('#costrows').innerHTML=COSTCAT.map(([n,c,sh])=>`<tr><td><span class="dot" style="background:${c}"></span>${n}</td><td class="r num">$${fmt(tot*sh)}</td><td class="r num">$${(k4*sh).toFixed(2)}</td></tr>`).join('')+`<tr><td><b>Total</b></td><td class="r num"><b>$${fmt(tot)}</b></td><td class="r num"><b>$${k4.toFixed(2)}</b></td></tr>`;
+}
+
+/* ================= ABOUT ================= */
+$('#steps').innerHTML=[
+ ['1','Register sources','SCOR: Source',['Farm boundary and CAR number for every source','Includes Tier-2 farms behind the cooperative','Contacts, land use, documents'],'#suppliers','Supplier directory'],
+ ['2','Check land','SCOR: Source',['Compare boundaries with imagery before and after 31 Dec 2020','Track cadastral splits year by year','Legal DCF and land-cover-inclusive DCF'],'#land','Land check'],
+ ['3','Compare amounts','SCOR: Make',['Opening stock + production + purchases = deliveries + closing stock + losses','Yield vs regional reference ±15%','Farmers report through the portal'],'#balance','Stock check'],
+ ['4','Decide','SCOR: Deliver',['Verification team reviews evidence, books field visits','Purchasing approves, holds or rejects before mixing','Approved lots get an EU DDS'],'#queue','Delivery queue']
+].map(([n,t,sc,li,h,l])=>`<div class="step"><span class="n">${n}</span><h3>${t}</h3><span class="scor">${sc}</span><ul>${li.map(x=>`<li>${x}</li>`).join('')}</ul><a href="${h}" style="margin-top:auto;font-weight:600;font-size:13px">Open ${l} →</a></div>`).join('');
+$('#srcrows').innerHTML=[
+ ['Farm boundaries and owners','SICAR, Brazil\'s Rural Environmental Registry (CAR)','Register sources, detect paper splits','1–2'],
+ ['Annual deforestation','INPE PRODES (Amazon and Cerrado)','Legal DCF check after the cut-off','2'],
+ ['Clearing alerts','MapBiomas Alerta','Validated alerts with property overlap','2'],
+ ['Tree cover loss and alerts','Global Forest Watch (UMD tree cover loss, GLAD and RADD alerts)','Loss history by year, near-real-time alerts','2'],
+ ['Public imagery','Copernicus Sentinel-2 (10 m), Landsat (30 m)','Before/after comparison on every polygon','2'],
+ ['High-resolution imagery','Commercial providers (around 0.5 m)','Targeted checks on high-risk polygons only','2'],
+ ['Regional yields','CONAB crop survey estimates','Yield plausibility band','3'],
+ ['Stocks, purchases, transport','LDC ERP and truck scale records, cooperative logs','Stock check','3'],
+ ['EU submission','EU TRACES information system','Due diligence statements','4']
+].map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><span class="pill mut">Simulated</span></td></tr>`).join('');
+
+
+const GLOSS=[
+ ['EUDR','EU Deforestation Regulation. From 30 Dec 2026, soy sold in the EU must not come from land deforested after 31 Dec 2020, and every shipment needs farm locations.'],
+ ['Cut-off date (31 Dec 2020)','Land cleared after this date makes the soy from it non-compliant under EUDR.'],
+ ['CAR','Brazil\'s rural land registry (Cadastro Ambiental Rural). Every farm has a CAR number and a mapped boundary.'],
+ ['Polygon / boundary','The outline of a farm on a map. EUDR needs a polygon for plots over 4 hectares, not just one GPS point.'],
+ ['Tier-1 (direct supplier)','A farm that sells straight to LDC.'],
+ ['Tier-2 (via cooperative)','A farm that sells to a cooperative or local trader, which then sells to LDC. These farms are the hardest to trace.'],
+ ['Matopiba','The newest soy frontier in Brazil\'s Cerrado, named after Maranhão, Tocantins, Piauí and Bahia. Much of the recent native vegetation loss for soy happens here.'],
+ ['Cerrado','Brazil\'s tropical savanna. Much of it is not "forest" under the EUDR definition, so clearing it can still pass the legal check.'],
+ ['Forest check (EUDR rule)','Was any forest, as EUDR defines it, cleared on this farm after the cut-off? Also called the legal DCF.'],
+ ['Nature check (forest and savanna)','Stricter than EUDR: was any native vegetation, including Cerrado savanna, cleared after the cut-off? Also called the land-cover-inclusive DCF.'],
+ ['DCF','Deforestation- and conversion-free. Soy that comes from land that was not cleared or converted after the cut-off.'],
+ ['Paper split','A farm is divided into two registrations on paper but run as one. The clean half certifies the harvest from the newly cleared half.'],
+ ['Stock check (mass balance)','Opening stock + production received + purchases must equal deliveries + closing stock + losses. A gap means soy with no recorded source.'],
+ ['Harvest check (yield)','Tonnes reported ÷ hectares harvested, compared with the normal yield for the region (±15%). Too high suggests soy from somewhere else.'],
+ ['Truck scale','The scale at the LDC silo where every truck is weighed on arrival. Also called a weighbridge.'],
+ ['Invoice (NF-e)','Brazil\'s electronic invoice that travels with every truckload.'],
+ ['Waiting bins (Wait-1, Wait-2)','Storage where new deliveries sit, kept apart from other soy, until the checks are done.'],
+ ['EU-ready bins (EU-1 to EU-3)','Storage for approved soy. Only these bins feed the EU-bound crushing line.'],
+ ['Non-EU bin','Storage for rejected soy. It can be sold outside the EU but can never re-enter the EU flow.'],
+ ['Leakage','Rejected soy being sold to markets without deforestation rules instead.'],
+ ['DDS','Due diligence statement. The EUDR document LDC files for each shipment, with the farm locations.'],
+ ['TRACES','The EU\'s online system where due diligence statements are submitted.'],
+ ['GLAD, RADD alerts','Free satellite alert systems shown on Global Forest Watch. GLAD uses optical images, RADD uses radar that sees through clouds.'],
+ ['Tree cover loss','Global Forest Watch measure: a 30 m square where most of the trees were removed in a given year.'],
+ ['Checking on site','A field visit to see what satellites cannot, such as whether a cleared strip is a firebreak or new farmland.'],
+ ['Final payment hold (clause 7.2)','The last 10% of the price is paid only after checks are complete.'],
+ ['Legal reserve','Brazil\'s Forest Code requires each farm to keep part of its land as native vegetation (80% in the Amazon, 35% in Cerrado inside the Legal Amazon such as Tocantins, 20% in Cerrado outside it such as western Bahia).'],
+ ['SCOR','Supply chain model with five stages: Plan, Source, Make, Deliver, Return. Each KPI is linked to one stage.']
+];
+function renderGloss(){const q=($('#gq').value||'').toLowerCase();
+  $('#glrows').innerHTML=GLOSS.filter(([t,d])=>!q||(t+' '+d).toLowerCase().includes(q)).map(([t,d])=>`<tr><td><b>${t}</b></td><td>${d}</td></tr>`).join('')||'<tr><td colspan="2" class="hint">No match.</td></tr>';}
+$('#gq').addEventListener('input',renderGloss);
+
+/* ================= INIT ================= */
+function renderAll(){renderDash();renderSuppliers();renderMap();renderPortal();renderBalance();renderQueue();renderDds();renderTracking();renderStorage();renderPayments();}
+renderAll();renderLand();renderGloss();route();
+</script>
+</body>
+</html>
